@@ -23,29 +23,33 @@ import org.apache.ibatis.reflection.Reflector;
  * @author Clinton Begin
  */
 public class SetFieldInvoker implements Invoker {
-  private final Field field;
+	/**
+     * Field 对象
+     */
+	private final Field field;
 
-  public SetFieldInvoker(Field field) {
-    this.field = field;
-  }
+	public SetFieldInvoker(Field field) {
+		this.field = field;
+	}
 
-  @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException {
-    try {
-      field.set(target, args[0]);
-    } catch (IllegalAccessException e) {
-      if (Reflector.canControlMemberAccessible()) {
-        field.setAccessible(true);
-        field.set(target, args[0]);
-      } else {
-        throw e;
-      }
-    }
-    return null;
-  }
+	@Override
+	public Object invoke(Object target, Object[] args) throws IllegalAccessException {
+		try {
+			// 执行 target 对象中 field 字段的 setter 方法，参数为 args[0]
+			field.set(target, args[0]);
+		} catch (IllegalAccessException e) {
+			if (Reflector.canControlMemberAccessible()) {
+				field.setAccessible(true);
+				field.set(target, args[0]);
+			} else {
+				throw e;
+			}
+		}
+		return null;
+	}
 
-  @Override
-  public Class<?> getType() {
-    return field.getType();
-  }
+	@Override
+	public Class<?> getType() {
+		return field.getType();
+	}
 }

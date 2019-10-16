@@ -21,56 +21,81 @@ import java.util.Iterator;
  * @author Clinton Begin
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
-  private String name;
-  private final String indexedName;
-  private String index;
-  private final String children;
+	/**
+	 * 当前字符串
+	 */
+	private String name;
+	/**
+	 * 索引的 {@link #name} ，因为 {@link #name} 如果存在 {@link #index} 会被更改
+	 */
+	private final String indexedName;
+	/**
+	 * 编号。
+	 *
+	 * 对于数组 name[0] ，则 index = 0 对于 Map map[key] ，则 index = key
+	 */
+	private String index;
+	/**
+	 * 剩余字符串
+	 */
+	private final String children;
 
-  public PropertyTokenizer(String fullname) {
-    int delim = fullname.indexOf('.');
-    if (delim > -1) {
-      name = fullname.substring(0, delim);
-      children = fullname.substring(delim + 1);
-    } else {
-      name = fullname;
-      children = null;
-    }
-    indexedName = name;
-    delim = name.indexOf('[');
-    if (delim > -1) {
-      index = name.substring(delim + 1, name.length() - 1);
-      name = name.substring(0, delim);
-    }
-  }
+	/**
+	 * 例如Mapper文件中的：map[qm].user，
+	 * name -> map 
+	 * indexedName -> map[qm] 
+	 * index -> qm 
+	 * children -> user
+	 */
+	public PropertyTokenizer(String fullname) {
+		// <1> 初始化 name、children 字符串，使用 . 作为分隔
+		int delim = fullname.indexOf('.');
+		if (delim > -1) {
+			name = fullname.substring(0, delim);
+			children = fullname.substring(delim + 1);
+		} else {
+			name = fullname;
+			children = null;
+		}
+		// <2> 记录当前 name
+		indexedName = name;
+		// 若存在 [ ，则获得 index ，并修改 name
+		delim = name.indexOf('[');
+		if (delim > -1) {
+			index = name.substring(delim + 1, name.length() - 1);
+			name = name.substring(0, delim);
+		}
+	}
 
-  public String getName() {
-    return name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public String getIndex() {
-    return index;
-  }
+	public String getIndex() {
+		return index;
+	}
 
-  public String getIndexedName() {
-    return indexedName;
-  }
+	public String getIndexedName() {
+		return indexedName;
+	}
 
-  public String getChildren() {
-    return children;
-  }
+	public String getChildren() {
+		return children;
+	}
 
-  @Override
-  public boolean hasNext() {
-    return children != null;
-  }
+	@Override
+	public boolean hasNext() {
+		return children != null;
+	}
 
-  @Override
-  public PropertyTokenizer next() {
-    return new PropertyTokenizer(children);
-  }
+	@Override
+	public PropertyTokenizer next() {
+		return new PropertyTokenizer(children);
+	}
 
-  @Override
-  public void remove() {
-    throw new UnsupportedOperationException("Remove is not supported, as it has no meaning in the context of properties.");
-  }
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException(
+				"Remove is not supported, as it has no meaning in the context of properties.");
+	}
 }

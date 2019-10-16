@@ -26,30 +26,75 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
  */
 public interface ObjectWrapper {
 
-  Object get(PropertyTokenizer prop);
+	/**
+     * 获得值
+     *
+     * @param prop PropertyTokenizer 对象，相当于键
+     * @return 值
+     */
+	Object get(PropertyTokenizer prop);
 
-  void set(PropertyTokenizer prop, Object value);
+	/**
+     * 设置值
+     *
+     * @param prop PropertyTokenizer 对象，相当于键
+     * @param value 值
+     */
+	void set(PropertyTokenizer prop, Object value);
 
-  String findProperty(String name, boolean useCamelCaseMapping);
+	/**
+     * {@link MetaClass#findProperty(String, boolean)}
+     */
+	String findProperty(String name, boolean useCamelCaseMapping);
 
-  String[] getGetterNames();
+	/**
+     * {@link MetaClass#getGetterNames()}
+     */
+	String[] getGetterNames();
 
-  String[] getSetterNames();
+	/**
+     * {@link MetaClass#getSetterNames()}
+     */
+	String[] getSetterNames();
 
-  Class<?> getSetterType(String name);
+	/**
+     * {@link MetaClass#getSetterType(String)}
+     */
+	Class<?> getSetterType(String name);
 
-  Class<?> getGetterType(String name);
+	/**
+     * {@link MetaClass#getGetterType(String)}
+     */
+	Class<?> getGetterType(String name);
 
-  boolean hasSetter(String name);
+	/**
+     * {@link MetaClass#hasSetter(String)}
+     */
+	boolean hasSetter(String name);
 
-  boolean hasGetter(String name);
+	/**
+     * {@link MetaClass#hasGetter(String)}
+     */
+	boolean hasGetter(String name);
 
-  MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory);
+	/**
+     * {@link MetaObject#forObject(Object, ObjectFactory, ObjectWrapperFactory, ReflectorFactory)}
+     */
+	MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory);
 
-  boolean isCollection();
+	/**
+     * 是否为集合
+     */
+	boolean isCollection();
 
-  void add(Object element);
+	/**
+     * 添加元素到集合
+     */
+	void add(Object element);
 
-  <E> void addAll(List<E> element);
+	/**
+     * 添加多个元素到集合
+     */
+	<E> void addAll(List<E> element);
 
 }

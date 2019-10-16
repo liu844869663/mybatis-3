@@ -23,28 +23,35 @@ import org.apache.ibatis.reflection.Reflector;
  * @author Clinton Begin
  */
 public class GetFieldInvoker implements Invoker {
-  private final Field field;
+	/**
+     * Field 对象
+     */
+	private final Field field;
 
-  public GetFieldInvoker(Field field) {
-    this.field = field;
-  }
+	public GetFieldInvoker(Field field) {
+		this.field = field;
+	}
 
-  @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException {
-    try {
-      return field.get(target);
-    } catch (IllegalAccessException e) {
-      if (Reflector.canControlMemberAccessible()) {
-        field.setAccessible(true);
-        return field.get(target);
-      } else {
-        throw e;
-      }
-    }
-  }
+	
+	@Override
+	public Object invoke(Object target, Object[] args) throws IllegalAccessException {
+		try {
+			// 执行 target 对象中 field 字段的 getter 方法
+			return field.get(target);
+		} catch (IllegalAccessException e) { // 如果该字段为 private 修饰，则抛出异常
+			// 进行校验，因为执行setAccessible(true)时内部会使用SecurityManager安全管理器进行check，不通过则抛出异常
+			// 这里自己先进行相关校验，至于为何本人有待研究
+			if (Reflector.canControlMemberAccessible()) {
+				field.setAccessible(true);
+				return field.get(target);
+			} else {
+				throw e;
+			}
+		}
+	}
 
-  @Override
-  public Class<?> getType() {
-    return field.getType();
-  }
+	@Override
+	public Class<?> getType() {
+		return field.getType();
+	}
 }

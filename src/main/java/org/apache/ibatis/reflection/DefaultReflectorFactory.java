@@ -19,30 +19,40 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultReflectorFactory implements ReflectorFactory {
-  private boolean classCacheEnabled = true;
-  private final ConcurrentMap<Class<?>, Reflector> reflectorMap = new ConcurrentHashMap<>();
+	/**
+	 * 是否缓存
+	 */
+	private boolean classCacheEnabled = false;
+	
+	/**
+     * Reflector 的缓存映射
+     *
+     * KEY：Class 对象
+     * VALUE：Reflector 对象
+     */
+	private final ConcurrentMap<Class<?>, Reflector> reflectorMap = new ConcurrentHashMap<>();
 
-  public DefaultReflectorFactory() {
-  }
+	public DefaultReflectorFactory() {
+	}
 
-  @Override
-  public boolean isClassCacheEnabled() {
-    return classCacheEnabled;
-  }
+	@Override
+	public boolean isClassCacheEnabled() {
+		return classCacheEnabled;
+	}
 
-  @Override
-  public void setClassCacheEnabled(boolean classCacheEnabled) {
-    this.classCacheEnabled = classCacheEnabled;
-  }
+	@Override
+	public void setClassCacheEnabled(boolean classCacheEnabled) {
+		this.classCacheEnabled = classCacheEnabled;
+	}
 
-  @Override
-  public Reflector findForClass(Class<?> type) {
-    if (classCacheEnabled) {
-      // synchronized (type) removed see issue #461
-      return reflectorMap.computeIfAbsent(type, Reflector::new);
-    } else {
-      return new Reflector(type);
-    }
-  }
+	@Override
+	public Reflector findForClass(Class<?> type) {
+		if (classCacheEnabled) {
+			// synchronized (type) removed see issue #461
+			return reflectorMap.computeIfAbsent(type, Reflector::new);
+		} else {
+			return new Reflector(type);
+		}
+	}
 
 }

@@ -23,21 +23,27 @@ import java.lang.reflect.UndeclaredThrowableException;
  */
 public class ExceptionUtil {
 
-  private ExceptionUtil() {
-    // Prevent Instantiation
-  }
+	private ExceptionUtil() {
+		// Prevent Instantiation
+	}
 
-  public static Throwable unwrapThrowable(Throwable wrapped) {
-    Throwable unwrapped = wrapped;
-    while (true) {
-      if (unwrapped instanceof InvocationTargetException) {
-        unwrapped = ((InvocationTargetException) unwrapped).getTargetException();
-      } else if (unwrapped instanceof UndeclaredThrowableException) {
-        unwrapped = ((UndeclaredThrowableException) unwrapped).getUndeclaredThrowable();
-      } else {
-        return unwrapped;
-      }
-    }
-  }
+	/**
+     * 去掉异常的包装
+     *
+     * @param wrapped 被包装的异常
+     * @return 去除包装后的异常
+     */
+	public static Throwable unwrapThrowable(Throwable wrapped) {
+		Throwable unwrapped = wrapped;
+		while (true) {
+			if (unwrapped instanceof InvocationTargetException) {
+				unwrapped = ((InvocationTargetException) unwrapped).getTargetException();
+			} else if (unwrapped instanceof UndeclaredThrowableException) {
+				unwrapped = ((UndeclaredThrowableException) unwrapped).getUndeclaredThrowable();
+			} else {
+				return unwrapped;
+			}
+		}
+	}
 
 }

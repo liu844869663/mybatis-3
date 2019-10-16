@@ -21,16 +21,33 @@ import java.lang.reflect.Method;
 
 import org.apache.ibatis.reflection.ReflectionException;
 
+/**
+ * 
+ * 如果一个字段对应多个setter方法或者getter方法 
+ * 并且无法在多个方法中选择出最优的setter方法或者getter方法
+ * 则从多个中取（随机）一个作为setter方法或者getter方法 
+ * 然后创建AmbiguousMethodInvoker对象，其中包含异常信息
+ * 
+ * @author jingping.liu
+ * @date 2019-10-16
+ *
+ */
 public class AmbiguousMethodInvoker extends MethodInvoker {
-  private final String exceptionMessage;
+	/**
+	 * 表明该方法为何模棱两可
+	 * 例如有个字段为private Object name，有两个setter方法setName(String name)、setName(Integer name)
+	 * Ambiguous setters defined for property 'name' in class 'org.apache.ibatis.reflection.example' 
+	 * with types 'java.lang.String' and 'java.lang.Integer'.
+	 */
+	private final String exceptionMessage;
 
-  public AmbiguousMethodInvoker(Method method, String exceptionMessage) {
-    super(method);
-    this.exceptionMessage = exceptionMessage;
-  }
+	public AmbiguousMethodInvoker(Method method, String exceptionMessage) {
+		super(method);
+		this.exceptionMessage = exceptionMessage;
+	}
 
-  @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
-    throw new ReflectionException(exceptionMessage);
-  }
+	@Override
+	public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
+		throw new ReflectionException(exceptionMessage);
+	}
 }

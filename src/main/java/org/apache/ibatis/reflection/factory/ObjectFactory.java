@@ -25,38 +25,46 @@ import java.util.Properties;
  */
 public interface ObjectFactory {
 
-  /**
-   * Sets configuration properties.
-   * @param properties configuration properties
-   */
-  default void setProperties(Properties properties) {
-    // NOP
-  }
+	/**
+	 * Sets configuration properties.
+	 * 
+	 * @param properties configuration properties
+	 */
+	default void setProperties(Properties properties) {
+		// NOP
+	}
 
-  /**
-   * Creates a new object with default constructor.
-   * @param type Object type
-   * @return
-   */
-  <T> T create(Class<T> type);
+	/**
+	 * 创建指定类的对象，使用默认构造方法 
+	 * Creates a new object with default constructor.
+	 * 
+	 * @param type Object type
+	 * @return
+	 */
+	<T> T create(Class<T> type);
 
-  /**
-   * Creates a new object with the specified constructor and params.
-   * @param type Object type
-   * @param constructorArgTypes Constructor argument types
-   * @param constructorArgs Constructor argument values
-   * @return
-   */
-  <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
+	/**
+	 * 创建指定类的对象，使用特定的构造方法 
+	 * Creates a new object with the specified constructor and
+	 * params.
+	 * 
+	 * @param type                Object type
+	 * @param constructorArgTypes Constructor argument types，指定构造方法的参数类型列表
+	 * @param constructorArgs     Constructor argument values，指定构造方法的参数值列表
+	 * @return
+	 */
+	<T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
-  /**
-   * Returns true if this object can have a set of other objects.
-   * It's main purpose is to support non-java.util.Collection objects like Scala collections.
-   *
-   * @param type Object type
-   * @return whether it is a collection or not
-   * @since 3.1.0
-   */
-  <T> boolean isCollection(Class<T> type);
+	/**
+	 * 判断指定类是否为集合类 
+	 * Returns true if this object can have a set of other objects. It's
+	 * main purpose is to support non-java.util.Collection objects like Scala
+	 * collections.
+	 *
+	 * @param type Object type
+	 * @return whether it is a collection or not
+	 * @since 3.1.0
+	 */
+	<T> boolean isCollection(Class<T> type);
 
 }
