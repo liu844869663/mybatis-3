@@ -26,97 +26,123 @@ import org.apache.ibatis.cache.CacheException;
 /**
  * Simple blocking decorator
  *
- * Simple and inefficient version of EhCache's BlockingCache decorator.
- * It sets a lock over a cache key when the element is not found in cache.
- * This way, other threads will wait until this element is filled instead of hitting the database.
+ * Simple and inefficient version of EhCache's BlockingCache decorator. It sets
+ * a lock over a cache key when the element is not found in cache. This way,
+ * other threads will wait until this element is filled instead of hitting the
+ * database.
  *
  * @author Eduardo Macarron
  *
  */
 public class BlockingCache implements Cache {
 
-  private long timeout;
-  private final Cache delegate;
-  private final ConcurrentHashMap<Object, ReentrantLock> locks;
+	/**
+     * 阻塞等待超时时间
+     */
+	private long timeout;
+	/**
+     * 装饰的 Cache 对象
+     */
+	private final Cache delegate;
+	/**
+     * 缓存键与 ReentrantLock 对象的映射
+     */
+	private final ConcurrentHashMap<Object, ReentrantLock> locks;
 
-  public BlockingCache(Cache delegate) {
-    this.delegate = delegate;
-    this.locks = new ConcurrentHashMap<>();
-  }
+	public BlockingCache(Cache delegate) {
+		this.delegate = delegate;
+		this.locks = new ConcurrentHashMap<>();
+	}
 
-  @Override
-  public String getId() {
-    return delegate.getId();
-  }
+	@Override
+	public String getId() {
+		return delegate.getId();
+	}
 
-  @Override
-  public int getSize() {
-    return delegate.getSize();
-  }
+	@Override
+	public int getSize() {
+		return delegate.getSize();
+	}
 
-  @Override
-  public void putObject(Object key, Object value) {
-    try {
-      delegate.putObject(key, value);
-    } finally {
-      releaseLock(key);
-    }
-  }
+	@Override
+	public void putObject(Object key, Object value) {
+		try {
+			delegate.putObject(key, value);
+		} finally {
+			// 释放锁
+			releaseLock(key);
+		}
+	}
 
-  @Override
-  public Object getObject(Object key) {
-    acquireLock(key);
-    Object value = delegate.getObject(key);
-    if (value != null) {
-      releaseLock(key);
-    }
-    return value;
-  }
+	@Override
+	public Object getObject(Object key) {
+		// 获得锁
+		acquireLock(key);
+		Object value = delegate.getObject(key);
+		if (value != null) {
+			// 释放锁
+			releaseLock(key);
+		}
+		return value;
+	}
 
-  @Override
-  public Object removeObject(Object key) {
-    // despite of its name, this method is called only to release locks
-    releaseLock(key);
-    return null;
-  }
+	@Override
+	public Object removeObject(Object key) {
+		// despite of its name, this method is called only to release locks
+		// 释放锁
+		releaseLock(key);
+		return null;
+	}
 
-  @Override
-  public void clear() {
-    delegate.clear();
-  }
+	@Override
+	public void clear() {
+		delegate.clear();
+	}
 
-  private ReentrantLock getLockForKey(Object key) {
-    return locks.computeIfAbsent(key, k -> new ReentrantLock());
-  }
+	/**
+     * 获得 ReentrantLock 对象。如果不存在，进行添加
+     *
+     * @param key 缓存键
+     * @return ReentrantLock 对象
+     */
+	private ReentrantLock getLockForKey(Object key) {
+		return locks.computeIfAbsent(key, k -> new ReentrantLock());
+	}
 
-  private void acquireLock(Object key) {
-    Lock lock = getLockForKey(key);
-    if (timeout > 0) {
-      try {
-        boolean acquired = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
-        if (!acquired) {
-          throw new CacheException("Couldn't get a lock in " + timeout + " for the key " +  key + " at the cache " + delegate.getId());
-        }
-      } catch (InterruptedException e) {
-        throw new CacheException("Got interrupted while trying to acquire lock for key " + key, e);
-      }
-    } else {
-      lock.lock();
-    }
-  }
+	private void acquireLock(Object key) {
+		// 获得 ReentrantLock 对象
+		Lock lock = getLockForKey(key);
+		// 获得锁，直到超时
+		if (timeout > 0) {
+			try {
+				boolean acquired = lock.tryLock(timeout, TimeUnit.MILLISECONDS);
+				if (!acquired) {
+					throw new CacheException("Couldn't get a lock in " + timeout + " for the key " + key
+							+ " at the cache " + delegate.getId());
+				}
+			} catch (InterruptedException e) {
+				throw new CacheException("Got interrupted while trying to acquire lock for key " + key, e);
+			}
+		} else {
+			// 释放锁
+			lock.lock();
+		}
+	}
 
-  private void releaseLock(Object key) {
-    ReentrantLock lock = locks.get(key);
-    if (lock.isHeldByCurrentThread()) {
-      lock.unlock();
-    }
-  }
+	private void releaseLock(Object key) {
+		// 获得 ReentrantLock 对象
+		ReentrantLock lock = locks.get(key);
+		// 如果当前线程持有，进行释放
+		if (lock.isHeldByCurrentThread()) {
+			lock.unlock();
+		}
+	}
 
-  public long getTimeout() {
-    return timeout;
-  }
+	public long getTimeout() {
+		return timeout;
+	}
 
-  public void setTimeout(long timeout) {
-    this.timeout = timeout;
-  }
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
+	}
 }
