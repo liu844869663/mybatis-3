@@ -26,7 +26,10 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target(ElementType.TYPE) // 注册到类
 public @interface MappedTypes {
-  Class<?>[] value();
+	/**
+     * @return 匹配的 Java Type 类型的数组
+     */
+	Class<?>[] value();
 }

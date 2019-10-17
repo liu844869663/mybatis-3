@@ -28,5 +28,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Alias {
-  String value();
+	/**
+     * @return 别名
+     */
+	String value();
 }
