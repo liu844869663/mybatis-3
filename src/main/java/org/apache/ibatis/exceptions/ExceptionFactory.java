@@ -22,12 +22,19 @@ import org.apache.ibatis.executor.ErrorContext;
  */
 public class ExceptionFactory {
 
-  private ExceptionFactory() {
-    // Prevent Instantiation
-  }
+	private ExceptionFactory() {
+		// Prevent Instantiation
+	}
 
-  public static RuntimeException wrapException(String message, Exception e) {
-    return new PersistenceException(ErrorContext.instance().message(message).cause(e).toString(), e);
-  }
+	/**
+     * 包装异常成 PersistenceException
+     *
+     * @param message 消息
+     * @param e 发生的异常
+     * @return PersistenceException
+     */
+	public static RuntimeException wrapException(String message, Exception e) {
+		return new PersistenceException(ErrorContext.instance().message(message).cause(e).toString(), e);
+	}
 
 }
