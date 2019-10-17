@@ -25,10 +25,11 @@ import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * {@link Transaction} that lets the container manage the full lifecycle of the transaction.
- * Delays connection retrieval until getConnection() is called.
- * Ignores all commit or rollback requests.
- * By default, it closes the connection but can be configured not to do it.
+ * {@link Transaction} that lets the container manage the full lifecycle of the
+ * transaction. Delays connection retrieval until getConnection() is called.
+ * Ignores all commit or rollback requests. By default, it closes the connection
+ * but can be configured not to do it.
+ * 没有自动提交字段，事务交给容器
  *
  * @author Clinton Begin
  *
@@ -36,65 +37,82 @@ import org.apache.ibatis.transaction.Transaction;
  */
 public class ManagedTransaction implements Transaction {
 
-  private static final Log log = LogFactory.getLog(ManagedTransaction.class);
+	private static final Log log = LogFactory.getLog(ManagedTransaction.class);
 
-  private DataSource dataSource;
-  private TransactionIsolationLevel level;
-  private Connection connection;
-  private final boolean closeConnection;
+	/**
+     * DataSource 对象
+     */
+	private DataSource dataSource;
+	/**
+     * 事务隔离级别
+     */
+	private TransactionIsolationLevel level;
+	/**
+     * Connection 对象
+     */
+	private Connection connection;
+	/**
+     * 是否关闭连接
+     *
+     * 这个属性是和 {@link org.apache.ibatis.transaction.jdbc.JdbcTransaction} 不同的
+     */
+	private final boolean closeConnection;
 
-  public ManagedTransaction(Connection connection, boolean closeConnection) {
-    this.connection = connection;
-    this.closeConnection = closeConnection;
-  }
+	public ManagedTransaction(Connection connection, boolean closeConnection) {
+		this.connection = connection;
+		this.closeConnection = closeConnection;
+	}
 
-  public ManagedTransaction(DataSource ds, TransactionIsolationLevel level, boolean closeConnection) {
-    this.dataSource = ds;
-    this.level = level;
-    this.closeConnection = closeConnection;
-  }
+	public ManagedTransaction(DataSource ds, TransactionIsolationLevel level, boolean closeConnection) {
+		this.dataSource = ds;
+		this.level = level;
+		this.closeConnection = closeConnection;
+	}
 
-  @Override
-  public Connection getConnection() throws SQLException {
-    if (this.connection == null) {
-      openConnection();
-    }
-    return this.connection;
-  }
+	@Override
+	public Connection getConnection() throws SQLException {
+		if (this.connection == null) {
+			openConnection();
+		}
+		return this.connection;
+	}
 
-  @Override
-  public void commit() throws SQLException {
-    // Does nothing
-  }
+	@Override
+	public void commit() throws SQLException {
+		// Does nothing
+	}
 
-  @Override
-  public void rollback() throws SQLException {
-    // Does nothing
-  }
+	@Override
+	public void rollback() throws SQLException {
+		// Does nothing
+	}
 
-  @Override
-  public void close() throws SQLException {
-    if (this.closeConnection && this.connection != null) {
-      if (log.isDebugEnabled()) {
-        log.debug("Closing JDBC Connection [" + this.connection + "]");
-      }
-      this.connection.close();
-    }
-  }
+	@Override
+	public void close() throws SQLException {
+		// 如果开启关闭连接功能，则关闭连接
+		if (this.closeConnection && this.connection != null) {
+			if (log.isDebugEnabled()) {
+				log.debug("Closing JDBC Connection [" + this.connection + "]");
+			}
+			this.connection.close();
+		}
+	}
 
-  protected void openConnection() throws SQLException {
-    if (log.isDebugEnabled()) {
-      log.debug("Opening JDBC Connection");
-    }
-    this.connection = this.dataSource.getConnection();
-    if (this.level != null) {
-      this.connection.setTransactionIsolation(this.level.getLevel());
-    }
-  }
+	protected void openConnection() throws SQLException {
+		if (log.isDebugEnabled()) {
+			log.debug("Opening JDBC Connection");
+		}
+		// 获得连接
+		this.connection = this.dataSource.getConnection();
+		// 设置隔离级别
+		if (this.level != null) {
+			this.connection.setTransactionIsolation(this.level.getLevel());
+		}
+	}
 
-  @Override
-  public Integer getTimeout() throws SQLException {
-    return null;
-  }
+	@Override
+	public Integer getTimeout() throws SQLException {
+		return null;
+	}
 
 }
