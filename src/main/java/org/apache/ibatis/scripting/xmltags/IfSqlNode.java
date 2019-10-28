@@ -19,23 +19,27 @@ package org.apache.ibatis.scripting.xmltags;
  * @author Clinton Begin
  */
 public class IfSqlNode implements SqlNode {
-  private final ExpressionEvaluator evaluator;
-  private final String test;
-  private final SqlNode contents;
+	private final ExpressionEvaluator evaluator;
+	private final String test;
+	private final SqlNode contents;
 
-  public IfSqlNode(SqlNode contents, String test) {
-    this.test = test;
-    this.contents = contents;
-    this.evaluator = new ExpressionEvaluator();
-  }
+	public IfSqlNode(SqlNode contents, String test) {
+		this.test = test;
+		this.contents = contents;
+		this.evaluator = new ExpressionEvaluator();
+	}
 
-  @Override
-  public boolean apply(DynamicContext context) {
-    if (evaluator.evaluateBoolean(test, context.getBindings())) {
-      contents.apply(context);
-      return true;
-    }
-    return false;
-  }
+	@Override
+	public boolean apply(DynamicContext context) {
+		// <1> 判断是否符合条件
+		if (evaluator.evaluateBoolean(test, context.getBindings())) {
+			// <2> 符合，执行 contents 的应用
+			contents.apply(context);
+			// 返回成功
+			return true;
+		}
+		// <3> 不符合，返回失败
+		return false;
+	}
 
 }

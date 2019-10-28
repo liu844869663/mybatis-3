@@ -19,5 +19,11 @@ package org.apache.ibatis.scripting.xmltags;
  * @author Clinton Begin
  */
 public interface SqlNode {
-  boolean apply(DynamicContext context);
+	/**
+	 * 应用当前 SQL Node 节点
+	 *
+	 * @param context 上下文
+	 * @return 当前 SQL Node 节点是否应用成功。
+	 */
+	boolean apply(DynamicContext context);
 }

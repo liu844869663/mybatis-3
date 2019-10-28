@@ -36,36 +36,43 @@ import org.apache.ibatis.reflection.Reflector;
  */
 class OgnlMemberAccess implements MemberAccess {
 
-  private final boolean canControlMemberAccessible;
+	/**
+	 * 是否可以修改成员的可访问
+	 */
+	private final boolean canControlMemberAccessible;
 
-  OgnlMemberAccess() {
-    this.canControlMemberAccessible = Reflector.canControlMemberAccessible();
-  }
+	OgnlMemberAccess() {
+		this.canControlMemberAccessible = Reflector.canControlMemberAccessible();
+	}
 
-  @Override
-  public Object setup(Map context, Object target, Member member, String propertyName) {
-    Object result = null;
-    if (isAccessible(context, target, member, propertyName)) {
-      AccessibleObject accessible = (AccessibleObject) member;
-      if (!accessible.isAccessible()) {
-        result = Boolean.FALSE;
-        accessible.setAccessible(true);
-      }
-    }
-    return result;
-  }
+	@Override
+	public Object setup(Map context, Object target, Member member, String propertyName) {
+		Object result = null;
+		// 判断是否可以修改
+		if (isAccessible(context, target, member, propertyName)) {
+			AccessibleObject accessible = (AccessibleObject) member;
+			// 不可访问，则设置为可访问
+			if (!accessible.isAccessible()) {
+				// 标记原来是不可访问的
+				result = Boolean.FALSE;
+				// 修改可访问
+				accessible.setAccessible(true);
+			}
+		}
+		return result;
+	}
 
-  @Override
-  public void restore(Map context, Object target, Member member, String propertyName,
-      Object state) {
-    if (state != null) {
-      ((AccessibleObject) member).setAccessible((Boolean) state);
-    }
-  }
+	@Override
+	public void restore(Map context, Object target, Member member, String propertyName, Object state) {
+		if (state != null) {
+			// 修改为原来的可访问
+			((AccessibleObject) member).setAccessible((Boolean) state);
+		}
+	}
 
-  @Override
-  public boolean isAccessible(Map context, Object target, Member member, String propertyName) {
-    return canControlMemberAccessible;
-  }
+	@Override
+	public boolean isAccessible(Map context, Object target, Member member, String propertyName) {
+		return canControlMemberAccessible;
+	}
 
 }
