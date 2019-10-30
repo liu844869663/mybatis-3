@@ -93,7 +93,7 @@ public class SimpleExecutor extends BaseExecutor {
 
 	private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
 		Statement stmt;
-		// <2.1> 获得 Connection 对象
+		// <2.1> 获得 Connection 对象(主要为了Debug时获取新的Connection)
 		Connection connection = getConnection(statementLog);
 		// <2.2> 创建 Statement 或 PrepareStatement 对象
 		stmt = handler.prepare(connection, transaction.getTimeout());

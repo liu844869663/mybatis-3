@@ -73,6 +73,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
 		this.boundSql = boundSql;
 
 		// <2> 创建 ParameterHandler 对象，默认的 DefaultParameterHandler
+		// PreparedStatementHandler实现的parameterize对参数预处理进行参数化时需要用到
 		this.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);
 		// <3> 创建 ResultSetHandler 对象
 		this.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);

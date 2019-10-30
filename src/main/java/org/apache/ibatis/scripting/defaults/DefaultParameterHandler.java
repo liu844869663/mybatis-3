@@ -63,11 +63,14 @@ public class DefaultParameterHandler implements ParameterHandler {
 		ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
 		List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
 		if (parameterMappings != null) {
+			// 遍历所有参数
 			for (int i = 0; i < parameterMappings.size(); i++) {
 				ParameterMapping parameterMapping = parameterMappings.get(i);
-				if (parameterMapping.getMode() != ParameterMode.OUT) {
+				if (parameterMapping.getMode() != ParameterMode.OUT) { // 如果参数的模式不为OUT(表示出参)，即入参
 					Object value;
+					// 获取入参的属性名
 					String propertyName = parameterMapping.getProperty();
+					// 获取入参的实际值
 					if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
 						value = boundSql.getAdditionalParameter(propertyName);
 					} else if (parameterObject == null) {
@@ -78,12 +81,16 @@ public class DefaultParameterHandler implements ParameterHandler {
 						MetaObject metaObject = configuration.newMetaObject(parameterObject);
 						value = metaObject.getValue(propertyName);
 					}
+					// 获取参数对应的TypeHandler
 					TypeHandler typeHandler = parameterMapping.getTypeHandler();
+					// 获取对应的JDBC类型
 					JdbcType jdbcType = parameterMapping.getJdbcType();
 					if (value == null && jdbcType == null) {
+						// 如果没有则设置成'OTHER'
 						jdbcType = configuration.getJdbcTypeForNull();
 					}
 					try {
+						// 通过指定的TypeHandler设置对应占位符的值
 						typeHandler.setParameter(ps, i + 1, value, jdbcType);
 					} catch (TypeException | SQLException e) {
 						throw new TypeException(
