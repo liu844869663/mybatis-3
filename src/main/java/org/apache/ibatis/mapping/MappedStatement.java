@@ -300,15 +300,17 @@ public final class MappedStatement {
 	public BoundSql getBoundSql(Object parameterObject) {
 		// 获得 BoundSql 对象
 		BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
-		// 忽略，因为 <parameterMap /> 已经废弃，参见 http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html 文档
+		// 忽略，因为 <parameterMap /> 已经废弃，参见
+		// http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html 文档
 		List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
 		if (parameterMappings == null || parameterMappings.isEmpty()) {
-			boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(), parameterObject);
+			boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(),
+					parameterObject);
 		}
 
 		// check for nested result maps in parameter mappings (issue #30)
 		// 判断传入的参数中，是否有内嵌的结果 ResultMap 。如果有，则修改 hasNestedResultMaps 为 true
-	    // 存储过程相关，暂时无视
+		// 存储过程相关，暂时无视
 		for (ParameterMapping pm : boundSql.getParameterMappings()) {
 			String rmId = pm.getResultMapId();
 			if (rmId != null) {

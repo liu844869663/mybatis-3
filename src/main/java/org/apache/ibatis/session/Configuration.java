@@ -156,6 +156,11 @@ public class Configuration {
 			"Mapped Statements collection")
 					.conflictMessageProducer((savedValue, targetValue) -> ". please check " + savedValue.getResource()
 							+ " and " + targetValue.getResource());
+	/**
+	 * Cache 对象集合
+	 *
+	 * KEY：命名空间 namespace
+	 */
 	protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
 	protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
 	protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
@@ -607,9 +612,18 @@ public class Configuration {
 		return newExecutor(transaction, defaultExecutorType);
 	}
 
+	/**
+	 * 创建 Executor 对象
+	 *
+	 * @param transaction 事务对象
+	 * @param executorType 执行器类型
+	 * @return Executor 对象
+	 */
 	public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+		// <1> 获得执行器类型
 		executorType = executorType == null ? defaultExecutorType : executorType;
 		executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+		// <2> 创建对应实现的 Executor 对象
 		Executor executor;
 		if (ExecutorType.BATCH == executorType) {
 			executor = new BatchExecutor(this, transaction);
@@ -618,9 +632,11 @@ public class Configuration {
 		} else {
 			executor = new SimpleExecutor(this, transaction);
 		}
+		// <3> 如果开启缓存，创建 CachingExecutor 对象，进行包装
 		if (cacheEnabled) {
 			executor = new CachingExecutor(executor);
 		}
+		// <4> 应用插件
 		executor = (Executor) interceptorChain.pluginAll(executor);
 		return executor;
 	}

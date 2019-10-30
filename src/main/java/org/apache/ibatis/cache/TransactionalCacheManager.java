@@ -25,34 +25,39 @@ import org.apache.ibatis.cache.decorators.TransactionalCache;
  */
 public class TransactionalCacheManager {
 
-  private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();
+	/**
+	 * Cache 和 TransactionalCache 的映射
+	 */
+	private final Map<Cache, TransactionalCache> transactionalCaches = new HashMap<>();
 
-  public void clear(Cache cache) {
-    getTransactionalCache(cache).clear();
-  }
+	public void clear(Cache cache) {
+		getTransactionalCache(cache).clear();
+	}
 
-  public Object getObject(Cache cache, CacheKey key) {
-    return getTransactionalCache(cache).getObject(key);
-  }
+	public Object getObject(Cache cache, CacheKey key) {
+		return getTransactionalCache(cache).getObject(key);
+	}
 
-  public void putObject(Cache cache, CacheKey key, Object value) {
-    getTransactionalCache(cache).putObject(key, value);
-  }
+	public void putObject(Cache cache, CacheKey key, Object value) {
+		// 首先，获得 Cache 对应的 TransactionalCache 对象
+	    // 然后，添加 KV 到 TransactionalCache 对象中
+		getTransactionalCache(cache).putObject(key, value);
+	}
 
-  public void commit() {
-    for (TransactionalCache txCache : transactionalCaches.values()) {
-      txCache.commit();
-    }
-  }
+	public void commit() {
+		for (TransactionalCache txCache : transactionalCaches.values()) {
+			txCache.commit();
+		}
+	}
 
-  public void rollback() {
-    for (TransactionalCache txCache : transactionalCaches.values()) {
-      txCache.rollback();
-    }
-  }
+	public void rollback() {
+		for (TransactionalCache txCache : transactionalCaches.values()) {
+			txCache.rollback();
+		}
+	}
 
-  private TransactionalCache getTransactionalCache(Cache cache) {
-    return transactionalCaches.computeIfAbsent(cache, TransactionalCache::new);
-  }
+	private TransactionalCache getTransactionalCache(Cache cache) {
+		return transactionalCaches.computeIfAbsent(cache, TransactionalCache::new);
+	}
 
 }
