@@ -37,63 +37,76 @@ import org.apache.ibatis.session.RowBounds;
  */
 public class SimpleStatementHandler extends BaseStatementHandler {
 
-  public SimpleStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
-    super(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
-  }
+	public SimpleStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter,
+			RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+		super(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
+	}
 
-  @Override
-  public int update(Statement statement) throws SQLException {
-    String sql = boundSql.getSql();
-    Object parameterObject = boundSql.getParameterObject();
-    KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
-    int rows;
-    if (keyGenerator instanceof Jdbc3KeyGenerator) {
-      statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
-      rows = statement.getUpdateCount();
-      keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
-    } else if (keyGenerator instanceof SelectKeyGenerator) {
-      statement.execute(sql);
-      rows = statement.getUpdateCount();
-      keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
-    } else {
-      statement.execute(sql);
-      rows = statement.getUpdateCount();
-    }
-    return rows;
-  }
+	@Override
+	public int update(Statement statement) throws SQLException {
+		String sql = boundSql.getSql();
+		Object parameterObject = boundSql.getParameterObject();
+		KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
+		int rows;
+		if (keyGenerator instanceof Jdbc3KeyGenerator) { // 如果是 Jdbc3KeyGenerator 类型
+			// <1.1> 执行写操作
+			statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
+			// <1.2> 获得更新数量
+			rows = statement.getUpdateCount();
+			// <1.3> 执行 keyGenerator 的后置处理逻辑
+			keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
+		} else if (keyGenerator instanceof SelectKeyGenerator) { // 如果是 SelectKeyGenerator 类型
+			// <2.1> 执行写操作
+			statement.execute(sql);
+			// <2.2> 获得更新数量
+			rows = statement.getUpdateCount();
+			// <2.3> 执行 keyGenerator 的后置处理逻辑
+			keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
+		} else {
+			// <3.1> 执行写操作
+			statement.execute(sql);
+			// <3.2> 获得更新数量
+			rows = statement.getUpdateCount();
+		}
+		return rows;
+	}
 
-  @Override
-  public void batch(Statement statement) throws SQLException {
-    String sql = boundSql.getSql();
-    statement.addBatch(sql);
-  }
+	@Override
+	public void batch(Statement statement) throws SQLException {
+		String sql = boundSql.getSql();
+		// 添加到批处理
+		statement.addBatch(sql);
+	}
 
-  @Override
-  public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
-    String sql = boundSql.getSql();
-    statement.execute(sql);
-    return resultSetHandler.handleResultSets(statement);
-  }
+	@Override
+	public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+		String sql = boundSql.getSql();
+		// <1> 执行查询
+		statement.execute(sql);
+		// <2> 处理返回结果
+		return resultSetHandler.handleResultSets(statement);
+	}
 
-  @Override
-  public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
-    String sql = boundSql.getSql();
-    statement.execute(sql);
-    return resultSetHandler.handleCursorResultSets(statement);
-  }
+	@Override
+	public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
+		String sql = boundSql.getSql();
+		statement.execute(sql);
+		return resultSetHandler.handleCursorResultSets(statement);
+	}
 
-  @Override
-  protected Statement instantiateStatement(Connection connection) throws SQLException {
-    if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
-      return connection.createStatement();
-    } else {
-      return connection.createStatement(mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
-    }
-  }
+	@Override
+	protected Statement instantiateStatement(Connection connection) throws SQLException {
+		if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+			// 创建Statement对象
+			return connection.createStatement();
+		} else {
+			return connection.createStatement(mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
+		}
+	}
 
-  @Override
-  public void parameterize(Statement statement) {
-    // N/A
-  }
+	@Override
+	public void parameterize(Statement statement) {
+		// N/A
+	}
 
 }
