@@ -22,39 +22,48 @@ import org.apache.ibatis.session.ResultContext;
  */
 public class DefaultResultContext<T> implements ResultContext<T> {
 
-  private T resultObject;
-  private int resultCount;
-  private boolean stopped;
+	/**
+	 * 暂存映射后的结果对象，之后会放入DefaultResultHandler.list集合中
+	 */
+	private T resultObject;
+	/**
+	 * 记录经过DefaultResultContext暂存的对象个数
+	 */
+	private int resultCount;
+	/**
+	 * 控制是否进行映射
+	 */
+	private boolean stopped;
 
-  public DefaultResultContext() {
-    resultObject = null;
-    resultCount = 0;
-    stopped = false;
-  }
+	public DefaultResultContext() {
+		resultObject = null;
+		resultCount = 0;
+		stopped = false;
+	}
 
-  @Override
-  public T getResultObject() {
-    return resultObject;
-  }
+	@Override
+	public T getResultObject() {
+		return resultObject;
+	}
 
-  @Override
-  public int getResultCount() {
-    return resultCount;
-  }
+	@Override
+	public int getResultCount() {
+		return resultCount;
+	}
 
-  @Override
-  public boolean isStopped() {
-    return stopped;
-  }
+	@Override
+	public boolean isStopped() {
+		return stopped;
+	}
 
-  public void nextResultObject(T resultObject) {
-    resultCount++;
-    this.resultObject = resultObject;
-  }
+	public void nextResultObject(T resultObject) {
+		resultCount++;
+		this.resultObject = resultObject;
+	}
 
-  @Override
-  public void stop() {
-    this.stopped = true;
-  }
+	@Override
+	public void stop() {
+		this.stopped = true;
+	}
 
 }

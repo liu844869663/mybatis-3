@@ -27,10 +27,17 @@ import org.apache.ibatis.cursor.Cursor;
  */
 public interface ResultSetHandler {
 
-  <E> List<E> handleResultSets(Statement stmt) throws SQLException;
+	/**
+	 * @param <E>  Java Type
+	 * @param stmt 已执行SQL语句的Statement对象
+	 * @return 返回结果
+	 * @description 将执行结果由JDBC Type -> Java Type
+	 * @throws SQLException 异常
+	 */
+	<E> List<E> handleResultSets(Statement stmt) throws SQLException;
 
-  <E> Cursor<E> handleCursorResultSets(Statement stmt) throws SQLException;
+	<E> Cursor<E> handleCursorResultSets(Statement stmt) throws SQLException;
 
-  void handleOutputParameters(CallableStatement cs) throws SQLException;
+	void handleOutputParameters(CallableStatement cs) throws SQLException;
 
 }
