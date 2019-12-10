@@ -712,7 +712,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 			final List<ResultMapping> propertyMappings = resultMap.getPropertyResultMappings();
 			for (ResultMapping propertyMapping : propertyMappings) {
 				// issue gcode #109 && issue #149
-				// 如果存在延迟加载，则为其创建代理对象，在调用get方法的时候执行操作
+				// 如果存在延迟加载，则为其创建代理对象
 				if (propertyMapping.getNestedQueryId() != null && propertyMapping.isLazy()) {
 					resultObject = configuration.getProxyFactory().createProxy(resultObject, lazyLoader, configuration,
 							objectFactory, constructorArgTypes, constructorArgs);
