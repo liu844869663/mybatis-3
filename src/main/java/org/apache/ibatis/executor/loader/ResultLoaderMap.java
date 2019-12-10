@@ -150,6 +150,7 @@ public class ResultLoaderMap {
 			this.resultLoader = resultLoader;
 
 			/* Save required information only if original object can be serialized. */
+			// 当 `metaResultObject.originalObject` 可序列化时，则记录 mappedStatement、mappedParameter、configurationFactory 属性
 			if (metaResultObject != null && metaResultObject.getOriginalObject() instanceof Serializable) {
 				final Object mappedStatementParameter = resultLoader.parameterObject;
 

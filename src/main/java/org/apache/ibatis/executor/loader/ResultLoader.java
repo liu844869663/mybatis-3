@@ -39,69 +39,106 @@ import org.apache.ibatis.transaction.TransactionFactory;
  */
 public class ResultLoader {
 
-  protected final Configuration configuration;
-  protected final Executor executor;
-  protected final MappedStatement mappedStatement;
-  protected final Object parameterObject;
-  protected final Class<?> targetType;
-  protected final ObjectFactory objectFactory;
-  protected final CacheKey cacheKey;
-  protected final BoundSql boundSql;
-  protected final ResultExtractor resultExtractor;
-  protected final long creatorThreadId;
+	protected final Configuration configuration;
+	protected final Executor executor;
+	protected final MappedStatement mappedStatement;
+	/**
+	 * 查询的参数对象
+	 */
+	protected final Object parameterObject;
+	/**
+	 * 结果的类型
+	 */
+	protected final Class<?> targetType;
+	protected final ObjectFactory objectFactory;
+	protected final CacheKey cacheKey;
+	protected final BoundSql boundSql;
+	/**
+	 * ResultExtractor 对象
+	 */
+	protected final ResultExtractor resultExtractor;
+	/**
+	 * 创建 ResultLoader 对象时，所在的线程
+	 */
+	protected final long creatorThreadId;
 
-  protected boolean loaded;
-  protected Object resultObject;
+	/**
+	 * 是否已经加载
+	 */
+	protected boolean loaded;
+	/**
+	 * 查询的结果对象
+	 */
+	protected Object resultObject;
 
-  public ResultLoader(Configuration config, Executor executor, MappedStatement mappedStatement, Object parameterObject, Class<?> targetType, CacheKey cacheKey, BoundSql boundSql) {
-    this.configuration = config;
-    this.executor = executor;
-    this.mappedStatement = mappedStatement;
-    this.parameterObject = parameterObject;
-    this.targetType = targetType;
-    this.objectFactory = configuration.getObjectFactory();
-    this.cacheKey = cacheKey;
-    this.boundSql = boundSql;
-    this.resultExtractor = new ResultExtractor(configuration, objectFactory);
-    this.creatorThreadId = Thread.currentThread().getId();
-  }
+	public ResultLoader(Configuration config, Executor executor, MappedStatement mappedStatement,
+			Object parameterObject, Class<?> targetType, CacheKey cacheKey, BoundSql boundSql) {
+		this.configuration = config;
+		this.executor = executor;
+		this.mappedStatement = mappedStatement;
+		this.parameterObject = parameterObject;
+		this.targetType = targetType;
+		this.objectFactory = configuration.getObjectFactory();
+		this.cacheKey = cacheKey;
+		this.boundSql = boundSql;
+		// 初始化 resultExtractor
+		this.resultExtractor = new ResultExtractor(configuration, objectFactory);
+		// 初始化 creatorThreadId
+		this.creatorThreadId = Thread.currentThread().getId();
+	}
 
-  public Object loadResult() throws SQLException {
-    List<Object> list = selectList();
-    resultObject = resultExtractor.extractObjectFromList(list, targetType);
-    return resultObject;
-  }
+	public Object loadResult() throws SQLException {
+		// <1> 查询结果
+		List<Object> list = selectList();
+		// <2> 提取结果
+		resultObject = resultExtractor.extractObjectFromList(list, targetType);
+		// <3> 返回结果
+		return resultObject;
+	}
 
-  private <E> List<E> selectList() throws SQLException {
-    Executor localExecutor = executor;
-    if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
-      localExecutor = newExecutor();
-    }
-    try {
-      return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, cacheKey, boundSql);
-    } finally {
-      if (localExecutor != executor) {
-        localExecutor.close(false);
-      }
-    }
-  }
+	private <E> List<E> selectList() throws SQLException {
+		// <1> 获得 Executor 对象
+		Executor localExecutor = executor;
+		if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
+			localExecutor = newExecutor();
+		}
+		try {
+			// <2> 执行查询
+			return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
+					cacheKey, boundSql);
+		} finally {
+			// <3> 关闭 Executor 对象
+			if (localExecutor != executor) {
+				localExecutor.close(false);
+			}
+		}
+	}
 
-  private Executor newExecutor() {
-    final Environment environment = configuration.getEnvironment();
-    if (environment == null) {
-      throw new ExecutorException("ResultLoader could not load lazily.  Environment was not configured.");
-    }
-    final DataSource ds = environment.getDataSource();
-    if (ds == null) {
-      throw new ExecutorException("ResultLoader could not load lazily.  DataSource was not configured.");
-    }
-    final TransactionFactory transactionFactory = environment.getTransactionFactory();
-    final Transaction tx = transactionFactory.newTransaction(ds, null, false);
-    return configuration.newExecutor(tx, ExecutorType.SIMPLE);
-  }
+	/**
+	 * 如果当前线程不是创建线程，则调用 #newExecutor() 方法，创建 Executor 对象，因为 Executor 是非线程安全的
+	 * 
+	 * @return Executor
+	 */
+	private Executor newExecutor() {
+		// 校验 environment
+		final Environment environment = configuration.getEnvironment();
+		if (environment == null) {
+			throw new ExecutorException("ResultLoader could not load lazily.  Environment was not configured.");
+		}
+		// 校验 DataSource
+		final DataSource ds = environment.getDataSource();
+		if (ds == null) {
+			throw new ExecutorException("ResultLoader could not load lazily.  DataSource was not configured.");
+		}
+		// 创建 Transaction 对象
+		final TransactionFactory transactionFactory = environment.getTransactionFactory();
+		final Transaction tx = transactionFactory.newTransaction(ds, null, false);
+		// 创建 Executor 对象
+		return configuration.newExecutor(tx, ExecutorType.SIMPLE);
+	}
 
-  public boolean wasNull() {
-    return resultObject == null;
-  }
+	public boolean wasNull() {
+		return resultObject == null;
+	}
 
 }

@@ -184,7 +184,7 @@ public abstract class BaseExecutor implements Executor {
 			// <4.1> 从一级缓存中，获取查询结果
 			list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
 			if (list != null) { // <4.2> 获取到，则进行处理
-				 // 处理缓存存储过程的结果
+				// 处理缓存存储过程的结果
 				handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
 			} else { // <4.3> 获得不到，则从数据库中查询
 				list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
@@ -221,14 +221,17 @@ public abstract class BaseExecutor implements Executor {
 	@Override
 	public void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key,
 			Class<?> targetType) {
+		// 如果执行器已关闭，抛出 ExecutorException 异常
 		if (closed) {
 			throw new ExecutorException("Executor was closed.");
 		}
+		// 创建 DeferredLoad 对象
 		DeferredLoad deferredLoad = new DeferredLoad(resultObject, property, key, localCache, configuration,
 				targetType);
+		// 如果可加载，则执行加载
 		if (deferredLoad.canLoad()) {
 			deferredLoad.load();
-		} else {
+		} else { // 如果不可加载，则添加到 deferredLoads 中
 			deferredLoads.add(new DeferredLoad(resultObject, property, key, localCache, configuration, targetType));
 		}
 	}
@@ -428,8 +431,11 @@ public abstract class BaseExecutor implements Executor {
 		public void load() {
 			@SuppressWarnings("unchecked")
 			// we suppose we get back a List
+			// 从缓存 localCache 中获取
 			List<Object> list = (List<Object>) localCache.getObject(key);
+			// 解析结果
 			Object value = resultExtractor.extractObjectFromList(list, targetType);
+			// 设置到 resultObject 中
 			resultObject.setValue(property, value);
 		}
 
