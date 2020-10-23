@@ -64,15 +64,15 @@ public class MetaObject {
 		}
 	}
 
-	/**
-	 * 创建 MetaObject 对象
-	 *
-	 * @param object 原始 Object 对象
-	 * @param objectFactory
-	 * @param objectWrapperFactory
-	 * @param reflectorFactory
-	 * @return MetaObject 对象
-	 */
+  /**
+   * 创建 MetaObject 对象
+   *
+   * @param object               原始 Object 对象
+   * @param objectFactory        生产 Object 的实例工厂
+   * @param objectWrapperFactory 创建 ObjectWrapper 工厂，没有默认实现，没有用到
+   * @param reflectorFactory     创建 Object 对应 Reflector 的工厂
+   * @return MetaObject 对象
+   */
 	public static MetaObject forObject(Object object, ObjectFactory objectFactory,
 			ObjectWrapperFactory objectWrapperFactory, ReflectorFactory reflectorFactory) {
 		if (object == null) {
@@ -126,6 +126,12 @@ public class MetaObject {
 		return objectWrapper.hasGetter(name);
 	}
 
+  /**
+   * 获取指定属性的值，递归处理
+   *
+   * @param name 属性名称
+   * @return 属性值
+   */
 	public Object getValue(String name) {
 		// 创建 PropertyTokenizer 对象，对 name 分词
 		PropertyTokenizer prop = new PropertyTokenizer(name);
@@ -144,7 +150,13 @@ public class MetaObject {
 		}
 	}
 
-	public void setValue(String name, Object value) {
+  /**
+   * 设置指定属性值
+   *
+   * @param name  属性名称
+   * @param value 属性值
+   */
+  public void setValue(String name, Object value) {
 		PropertyTokenizer prop = new PropertyTokenizer(name);
 		if (prop.hasNext()) {
 			MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
@@ -164,6 +176,12 @@ public class MetaObject {
 		}
 	}
 
+  /**
+   * 创建指定属性的 MetaObject 对象
+   *
+   * @param name 属性名称
+   * @return MetaObject 对象
+   */
 	public MetaObject metaObjectForProperty(String name) {
 		// 获得属性值
 		Object value = getValue(name);

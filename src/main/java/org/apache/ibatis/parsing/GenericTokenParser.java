@@ -28,6 +28,9 @@ public class GenericTokenParser {
 	 * 结束的 Token 字符串
 	 */
 	private final String closeToken;
+  /**
+   * Token处理器
+   */
 	private final TokenHandler handler;
 
 	public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {

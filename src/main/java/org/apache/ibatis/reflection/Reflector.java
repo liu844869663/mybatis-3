@@ -15,15 +15,7 @@
  */
 package org.apache.ibatis.reflection;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.ReflectPermission;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +42,7 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
 public class Reflector {
 
 	/**
-	 * 对应的类
+	 * Class类
 	 */
 	private final Class<?> type;
 	/**
@@ -64,7 +56,7 @@ public class Reflector {
 	/**
 	 * 属性对应的 setter 方法的映射。
 	 *
-	 * key 为属性名称 
+	 * key 为属性名称
 	 * value 为 Invoker 对象
 	 */
 	private final Map<String, Invoker> setMethods = new HashMap<>();
@@ -75,16 +67,16 @@ public class Reflector {
 	 */
 	private final Map<String, Invoker> getMethods = new HashMap<>();
 	/**
-	 * 属性对应的 setting 方法的方法参数类型的映射。{@link #setMethods}
+	 * 属性对应的 setter 方法的方法参数类型的映射。{@link #setMethods}
 	 *
-	 * key 为属性名称 
+	 * key 为属性名称
 	 * value 为方法参数类型
 	 */
 	private final Map<String, Class<?>> setTypes = new HashMap<>();
 	/**
-	 * 属性对应的 getting 方法的返回值类型的映射。{@link #getMethods}
+	 * 属性对应的 getter 方法的返回值类型的映射。{@link #getMethods}
 	 *
-	 * key 为属性名称 
+	 * key 为属性名称
 	 * value 为返回值的类型
 	 */
 	private final Map<String, Class<?>> getTypes = new HashMap<>();
@@ -94,20 +86,22 @@ public class Reflector {
 	private Constructor<?> defaultConstructor;
 
 	/**
-	 * 不区分大小写的属性集合
+	 * 所有属性集合
+   * key 为全大写的属性名称
+   * value 为属性名称
 	 */
 	private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
 	public Reflector(Class<?> clazz) {
 		// 设置对应的类
 		type = clazz;
-		// <1> 初始化 defaultConstructor
+		// <1> 初始化 defaultConstructor 默认构造器，也就是无参构造器
 		addDefaultConstructor(clazz);
-		// <2> // 初始化 getMethods 和 getTypes ，通过遍历 getting 方法
+		// <2> 初始化 getMethods 和 getTypes
 		addGetMethods(clazz);
-		// <3> // 初始化 setMethods 和 setTypes ，通过遍历 setting 方法
+		// <3> 初始化 setMethods 和 setTypes
 		addSetMethods(clazz);
-		// <4> // 初始化 getMethods + getTypes 和 setMethods + setTypes ，通过遍历 fields 属性
+		// <4> 可能有些属性没有get或者set方法，则直接将该Field字段封装成SetFieldInvoker或者GetFieldInvoker，然后分别保存至上面4个变量中
 		addFields(clazz);
 		// <5> 初始化 readablePropertyNames、writeablePropertyNames、caseInsensitivePropertyMap 属性
 		readablePropertyNames = getMethods.keySet().toArray(new String[0]);
@@ -398,6 +392,12 @@ public class Reflector {
 		}
 	}
 
+  /**
+   * 获取方法签名
+   *
+   * @param method 方法对象
+   * @return 签名：返回类型#方法名[:参数1类型[,参数2类型]]
+   */
 	private String getSignature(Method method) {
 		StringBuilder sb = new StringBuilder();
 		// 返回类型

@@ -31,7 +31,7 @@ public final class PropertyCopier {
 	/**
      * 将 sourceBean 的属性，复制到 destinationBean 中
      *
-     * @param type 指定类
+     * @param type 指定Bean的类型
      * @param sourceBean 来源 Bean 对象
      * @param destinationBean 目标 Bean 对象
      */

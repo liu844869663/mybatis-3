@@ -40,12 +40,15 @@ public class ParamNameUtil {
 	}
 
 	private static List<String> getParameterNames(Executable executable) {
-		return Arrays.stream(executable.getParameters()) // 获得 Parameter 数组
-				.map(Parameter::getName) // 获得参数名
-				.collect(Collectors.toList()); // 返回参数名称几个
+    // 获得 Parameter 数组
+    return Arrays.stream(executable.getParameters())
+      // 获得参数名
+      .map(Parameter::getName)
+      .collect(Collectors.toList());
 	}
 
 	private ParamNameUtil() {
 		super();
 	}
+
 }

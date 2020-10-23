@@ -144,6 +144,7 @@ public class TypeParameterResolver {
 				args[i] = typeArgs[i];
 			}
 		}
+    // 【2】创建 ParameterizedTypeImpl 对象
 		return new ParameterizedTypeImpl(rawType, null, args);
 	}
 

@@ -50,7 +50,7 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 	public <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
 		// 获取需要创建的类
 		Class<?> classToCreate = resolveInterface(type);
-		// we know types are assignable
+		// 创建指定类的对象
 		return (T) instantiateClass(classToCreate, constructorArgTypes, constructorArgs);
 	}
 
@@ -94,7 +94,7 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 									.orElseGet(Collections::emptyList).stream()
 									.map(String::valueOf)
 									.collect(Collectors.joining(","));
-			throw new ReflectionException("Error instantiating " + type 
+			throw new ReflectionException("Error instantiating " + type
 					+ " with invalid types (" + argTypes + ")"
 					+ " or values (" + argValues + ")."
 					+ " Cause: " + e, e);

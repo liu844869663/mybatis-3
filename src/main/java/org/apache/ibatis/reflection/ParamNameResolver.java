@@ -46,7 +46,7 @@ public class ParamNameResolver {
 	 * <li>aMethod(int a, int b) -&gt; {{0, "0"}, {1, "1"}}</li>
 	 * <li>aMethod(int a, RowBounds rb, int b) -&gt; {{0, "0"}, {2, "1"}}</li>
 	 * </ul>
-	 * 
+	 *
 	 * 参数名映射
 	 * KEY：参数顺序
 	 * VALUE：参数名
@@ -59,19 +59,21 @@ public class ParamNameResolver {
 	private boolean hasParamAnnotation;
 
 	public ParamNameResolver(Configuration config, Method method) {
+	  // 获取方法的参数类型集合
 		final Class<?>[] paramTypes = method.getParameterTypes();
+		// 获取方法的参数上面的注解集合
 		final Annotation[][] paramAnnotations = method.getParameterAnnotations();
 		final SortedMap<Integer, String> map = new TreeMap<>();
 		int paramCount = paramAnnotations.length;
 		// get names from @Param annotations
 		for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
-			// 忽略，如果是特殊参数
+			// 忽略 RowBounds、ResultHandler参数类型
 			if (isSpecialParameter(paramTypes[paramIndex])) {
 				// skip special parameters
 				continue;
 			}
 			String name = null;
-			// 首先，从 @Param 注解中获取参数
+			// <1> 首先，从 @Param 注解中获取参数名
 			for (Annotation annotation : paramAnnotations[paramIndex]) {
 				if (annotation instanceof Param) {
 					hasParamAnnotation = true;
@@ -81,11 +83,11 @@ public class ParamNameResolver {
 			}
 			if (name == null) {
 				// @Param was not specified.
-				// 其次，获取真实的参数名
+				// <2> 其次，获取真实的参数名
 				if (config.isUseActualParamName()) { // 默认开启
 					name = getActualParamName(method, paramIndex);
 				}
-				// 最差，使用 map 的顺序，作为编号
+				// <3> 最差，使用 map 的顺序，作为编号
 				if (name == null) {
 					// use the parameter index as the name ("0", "1", ...)
 					// gcode issue #71
@@ -95,7 +97,7 @@ public class ParamNameResolver {
 			// 添加到 map 中
 			map.put(paramIndex, name);
 		}
-		// 构建不可变集合
+		// 构建不可变的 SortedMap 集合
 		names = Collections.unmodifiableSortedMap(map);
 	}
 
@@ -114,30 +116,34 @@ public class ParamNameResolver {
 		return names.values().toArray(new String[0]);
 	}
 
-	/**
-	 * <p>
-	 * A single non-special parameter is returned without a name. Multiple
-	 * parameters are named using the naming rule. In addition to the default names,
-	 * this method also adds the generic names (param1, param2, ...).
-	 * </p>
-	 * 
-	 * 获得参数名与值的映射
-	 */
-	public Object getNamedParams(Object[] args) {
+  /**
+   * <p>
+   * A single non-special parameter is returned without a name. Multiple
+   * parameters are named using the naming rule. In addition to the default names,
+   * this method also adds the generic names (param1, param2, ...).
+   * </p>
+   * <p>
+   * 根据参数值返回参数名称与参数值的映射关系
+   *
+   * @param args 参数值数组
+   * @return 参数名称与参数值的映射关系
+   */
+  public Object getNamedParams(Object[] args) {
 		final int paramCount = names.size();
 		// 无参数，则返回 null
 		if (args == null || paramCount == 0) {
 			return null;
-		// 只有一个非注解的参数，直接返回首元素
+		// 只有1个参数，并且没有 @Param 注解，则直接返回该值
 		} else if (!hasParamAnnotation && paramCount == 1) {
 			return args[names.firstKey()];
 		} else {
-			// 集合。
-	        // 组合 1 ：KEY：参数名，VALUE：参数值
-	        // 组合 2 ：KEY：GENERIC_NAME_PREFIX + 参数顺序，VALUE ：参数值
-			final Map<String, Object> param = new ParamMap<>();
+		  /*
+		   * 参数名称与值的映射，包含以下两种组合数据：
+		   * 组合1：(参数名,值)
+		   * 组合2：(param+参数顺序,值)
+		   */
+      final Map<String, Object> param = new ParamMap<>();
 			int i = 0;
-			// 遍历 names 集合
 			for (Map.Entry<Integer, String> entry : names.entrySet()) {
 				// 组合 1 ：添加到 param 中
 				param.put(entry.getValue(), args[entry.getKey()]);
