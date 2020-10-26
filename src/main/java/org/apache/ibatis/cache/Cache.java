@@ -49,7 +49,7 @@ public interface Cache {
 
 	/**
 	 * 添加指定键的值
-	 * 
+	 *
 	 * @param key   Can be any object but usually it is a {@link CacheKey}
 	 * @param value The result of a select.
 	 */
@@ -57,7 +57,7 @@ public interface Cache {
 
 	/**
 	 * 获得指定键的值
-	 * 
+	 *
 	 * @param key The key
 	 * @return The object stored in the cache.
 	 */
@@ -65,7 +65,7 @@ public interface Cache {
 
 	/**
 	 * 移除指定键的值
-	 * 
+	 *
 	 * As of 3.3.0 this method is only called during a rollback for any previous
 	 * value that was missing in the cache. This lets any blocking cache to release
 	 * the lock that may have previously put on the key. A blocking cache puts a
@@ -81,14 +81,14 @@ public interface Cache {
 
 	/**
 	 * 清空缓存
-	 * 
+	 *
 	 * Clears this cache instance.
 	 */
 	void clear();
 
 	/**
 	 * 获得容器中缓存的数量
-	 * 
+	 *
 	 * Optional. This method is not called by the core.
 	 *
 	 * @return The number of elements stored in the cache (not its capacity).

@@ -51,7 +51,6 @@ public class Resources {
 	 * @return The default classloader
 	 */
 	public static ClassLoader getDefaultClassLoader() {
-		// 修改 ClassLoaderWrapper.
 		return classLoaderWrapper.defaultClassLoader;
 	}
 

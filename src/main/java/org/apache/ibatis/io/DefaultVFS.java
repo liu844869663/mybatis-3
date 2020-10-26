@@ -69,10 +69,10 @@ public class DefaultVFS extends VFS {
 				// 遍历 Jar Resource
 				resources = listResources(new JarInputStream(is), path);
 			} else {
+			  // 用于保存路径下的所有资源名称
 				List<String> children = new ArrayList<>();
 				try {
-					if (isJar(url)) {
-						// 如果该文件还是JAR包则对这个jar包进行解析
+					if (isJar(url)) { // 如果该文件还是JAR包则对这个jar包进行解析
 						// Some versions of JBoss VFS might give a JAR stream even if the resource
 						// referenced by the URL isn't actually a JAR
 						is = url.openStream();
@@ -96,7 +96,7 @@ public class DefaultVFS extends VFS {
 						 * loader as a child of the current resource. If any line fails then we assume
 						 * the current resource is not a directory.
 						 */
-						// 【重点】<1> 获得路径下的所有资源
+						// <1> 获得路径下的所有资源文件
 						is = url.openStream();
 						List<String> lines = new ArrayList<>();
 						try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
@@ -142,7 +142,6 @@ public class DefaultVFS extends VFS {
 				}
 
 				// The URL prefix to use when recursively listing child resources
-				// 【重点】<2> 计算 prefix
 				String prefix = url.toExternalForm();
 				if (!prefix.endsWith("/")) {
 					prefix = prefix + "/";
@@ -236,7 +235,7 @@ public class DefaultVFS extends VFS {
 
 		// If the file part of the URL is itself a URL, then that URL probably points to the JAR
 		// 这段代码看起来比较神奇，虽然看起来没有 break 的条件，但是是通过 MalformedURLException 异常进行
-	    // 正如上面英文注释，如果 URL 的文件部分本身就是 URL ，那么该 URL 可能指向 JAR
+    // 正如上面英文注释，如果 URL 的文件部分本身就是 URL ，那么该 URL 可能指向 JAR
 		boolean continueLoop = true;
 		while (continueLoop) {
 			try {
@@ -252,7 +251,7 @@ public class DefaultVFS extends VFS {
 
 		// Look for the .jar extension and chop off everything after that
 		StringBuilder jarUrl = new StringBuilder(url.toExternalForm());
-		// 判断是否意 .jar 结尾
+		// 判断是否以 .jar 结尾
 		int index = jarUrl.lastIndexOf(".jar");
 		if (index >= 0) {
 			jarUrl.setLength(index + 4);

@@ -135,7 +135,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 	private JdbcType safeGetJdbcTypeForColumn(ResultSetMetaData rsmd, Integer columnIndex) {
 		try {
 			// 从 ResultSetMetaData 中，获得字段类型
-            // 获得 JDBC Type
+      // 获得 JDBC Type
 			return JdbcType.forCode(rsmd.getColumnType(columnIndex));
 		} catch (Exception e) {
 			return null;
@@ -145,7 +145,7 @@ public class UnknownTypeHandler extends BaseTypeHandler<Object> {
 	private Class<?> safeGetClassForColumn(ResultSetMetaData rsmd, Integer columnIndex) {
 		try {
 			// 从 ResultSetMetaData 中，获得字段类型
-            // 获得 Java Type
+      // 获得 Java Type
 			return Resources.classForName(rsmd.getColumnClassName(columnIndex));
 		} catch (Exception e) {
 			return null;

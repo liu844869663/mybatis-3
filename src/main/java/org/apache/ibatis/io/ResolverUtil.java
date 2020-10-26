@@ -63,7 +63,7 @@ import org.apache.ibatis.logging.LogFactory;
  * resolver.find(new CustomTest(), pkg2);
  * Collection&lt;ActionBean&gt; beans = resolver.getClasses();
  * </pre>
- * 
+ *
  * <p>
  * 解析器工具类，用于获得指定目录符合条件的类
  * </p>
@@ -92,7 +92,7 @@ public class ResolverUtil<T> {
 	 * A Test that checks to see if each class is assignable to the provided class.
 	 * Note that this test will match the parent type itself if it is presented for
 	 * matching.
-	 * 判断是否为指定类
+	 * 判断是否匹配指定类
 	 */
 	public static class IsA implements Test {
 		private Class<?> parent;
@@ -123,7 +123,7 @@ public class ResolverUtil<T> {
 	/**
 	 * A Test that checks to see if each class is annotated with a specific
 	 * annotation. If it is, then the test returns true, otherwise false.
-	 * 判断是否有指定注解
+	 * 判断是否匹配指定注解
 	 */
 	public static class AnnotatedWith implements Test {
 		private Class<? extends Annotation> annotation;
@@ -161,6 +161,7 @@ public class ResolverUtil<T> {
 	/**
 	 * Provides access to the classes discovered so far. If no calls have been made
 	 * to any of the {@code find()} methods, this set will be empty.
+   * 获取匹配结果
 	 *
 	 * @return the set of classes that have been discovered.
 	 */

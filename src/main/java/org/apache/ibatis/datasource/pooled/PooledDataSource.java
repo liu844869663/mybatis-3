@@ -68,7 +68,7 @@ public class PooledDataSource implements DataSource {
 	 */
 	protected int poolTimeToWait = 20000;
 	/**
-	 * 这是一个关于坏连接容忍度的底层设置， 作用于每一个尝试从缓存池获取连接的线程. 
+	 * 这是一个关于坏连接容忍度的底层设置， 作用于每一个尝试从缓存池获取连接的线程.
 	 * 如果这个线程获取到的是一个坏的连接，那么这个数据源允许这个线程尝试重新获取一个新的连接，
 	 * 但是这个重新尝试的次数不应该超过poolMaximumIdleConnections与poolMaximumLocalBadConnectionTolerance之和
 	 */
@@ -193,7 +193,7 @@ public class PooledDataSource implements DataSource {
 	 * Sets the default network timeout value to wait for the database operation to
 	 * complete. See
 	 * {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-	 * 
+	 *
 	 * @param milliseconds The time in milliseconds to wait for the database
 	 *                     operation to complete.
 	 * @since 3.5.2
@@ -382,7 +382,7 @@ public class PooledDataSource implements DataSource {
 				}
 			}
 			// 遍历 idleConnections ，进行关闭
-	        //【实现代码上，和上面是一样的】
+      //【实现代码上，和上面是一样的】
 			for (int i = state.idleConnections.size(); i > 0; i--) {
 				try {
 					PooledConnection conn = state.idleConnections.remove(i - 1);
@@ -413,7 +413,7 @@ public class PooledDataSource implements DataSource {
 
 	/**
 	 * "关闭"一个连接，放入空闲连接队列中或者关设置为无效状态并关闭真正的连接
-	 * 
+	 *
 	 * @param conn 连接
 	 * @throws SQLException 异常
 	 */
@@ -428,11 +428,11 @@ public class PooledDataSource implements DataSource {
 						&& conn.getConnectionTypeCode() == expectedConnectionTypeCode) {
 					// 统计连接使用时长
 					state.accumulatedCheckoutTime += conn.getCheckoutTime();
-					// 回滚事务，避免适用房未提交或者回滚事务
+					// 回滚事务，避免使用方未提交或者回滚事务
 					if (!conn.getRealConnection().getAutoCommit()) {
 						conn.getRealConnection().rollback();
 					}
-					// 创建 PooledConnection 对象，并添加到空闲的链接集合中
+					// 创建 PooledConnection 对象，并添加到空闲的连接集合中
 					PooledConnection newConn = new PooledConnection(conn.getRealConnection(), this);
 					state.idleConnections.add(newConn);
 					newConn.setCreatedTimestamp(conn.getCreatedTimestamp());
@@ -448,7 +448,7 @@ public class PooledDataSource implements DataSource {
 				} else {
 					// 统计连接使用时长
 					state.accumulatedCheckoutTime += conn.getCheckoutTime();
-					// 回滚事务，避免适用房未提交或者回滚事务
+					// 回滚事务，避免使用方未提交或者回滚事务
 					if (!conn.getRealConnection().getAutoCommit()) {
 						conn.getRealConnection().rollback();
 					}
@@ -473,7 +473,7 @@ public class PooledDataSource implements DataSource {
 
 	/**
 	 * 获取一个连接
-	 * 
+	 *
 	 * @param username 用户名
 	 * @param password 密码
 	 * @return PooledConnection数据库连接
@@ -555,7 +555,7 @@ public class PooledDataSource implements DataSource {
 								}
 								// 记录当前时间
 								long wt = System.currentTimeMillis();
-								// 等待，直到超时，或 pingConnection 方法中归还连接时的唤醒
+								// 等待，直到超时，或 pushConnection 方法中归还连接时的唤醒
 								state.wait(poolTimeToWait);
 								// 统计等待连接的时间
 								state.accumulatedWaitTime += System.currentTimeMillis() - wt;

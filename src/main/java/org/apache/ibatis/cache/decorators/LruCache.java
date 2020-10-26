@@ -61,7 +61,7 @@ public class LruCache implements Cache {
 			private static final long serialVersionUID = 4267176411845948333L;
 
 			// LinkedHashMap自带的判断是否删除最老的元素方法，默认返回false，即不删除老数据
-            // 我们要做的就是重写这个方法，当满足一定条件时删除老数据
+      // 我们要做的就是重写这个方法，当满足一定条件时删除老数据
 			@Override
 			protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
 				boolean tooBig = size() > size;

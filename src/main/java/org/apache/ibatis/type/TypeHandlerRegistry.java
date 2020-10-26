@@ -59,7 +59,7 @@ public final class TypeHandlerRegistry {
 	 * {@link #register(JdbcType, TypeHandler)}
 	 */
 	private final Map<JdbcType, TypeHandler<?>> jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
-	
+
 	/**
 	 * {@link TypeHandler} 的映射
 	 *
@@ -69,12 +69,12 @@ public final class TypeHandlerRegistry {
 	 * VALUE2：{@link TypeHandler} 对象
 	 */
 	private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
-	
+
 	/**
 	 * {@link UnknownTypeHandler} 对象
 	 */
 	private final TypeHandler<Object> unknownTypeHandler = new UnknownTypeHandler(this);
-	
+
 	/**
 	 * 所有 TypeHandler 的“集合”
 	 *
@@ -82,21 +82,21 @@ public final class TypeHandlerRegistry {
 	 * VALUE：{@link TypeHandler} 对象
 	 */
 	private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
-	
+
 	/**
 	 * 空 TypeHandler 集合的标识，即使 {@link #TYPE_HANDLER_MAP} 中，某个 KEY1 对应的 Map<JdbcType, TypeHandler<?>> 为空。
 	 *
 	 * @see #getJdbcHandlerMap(Type)
 	 */
 	private static final Map<JdbcType, TypeHandler<?>> NULL_TYPE_HANDLER_MAP = Collections.emptyMap();
-	
+
 	/**
 	 * 默认的枚举类型的 TypeHandler 对象
 	 */
 	private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class;
 
 	/**
-	 * 无参构造方法，将Java Type与TypeHandler、JDBC Type与TypeHandler之间的对应添加至本地
+	 * 无参构造方法，将Java Type 与 TypeHandler、JDBC Type与 TypeHandler 之间的对应添加至本地
 	 */
 	public TypeHandlerRegistry() {
 		register(Boolean.class, new BooleanTypeHandler());
@@ -202,7 +202,7 @@ public final class TypeHandlerRegistry {
 	/**
 	 * Set a default {@link TypeHandler} class for {@link Enum}. A default
 	 * {@link TypeHandler} is {@link org.apache.ibatis.type.EnumTypeHandler}.
-	 * 
+	 *
 	 * @param typeHandler a type handler class for {@link Enum}
 	 * @since 3.4.5
 	 */

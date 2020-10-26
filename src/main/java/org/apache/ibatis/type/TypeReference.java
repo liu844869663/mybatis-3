@@ -41,7 +41,7 @@ public abstract class TypeReference<T> {
 		Type genericSuperclass = clazz.getGenericSuperclass();
 		if (genericSuperclass instanceof Class) {
 			// 能满足这个条件的，例如 GenericTypeSupportedInHierarchiesTestCase.CustomStringTypeHandler 这个类
-            // try to climb up the hierarchy until meet something useful
+      // try to climb up the hierarchy until meet something useful
 			if (TypeReference.class != genericSuperclass) {
 				return getSuperclassTypeParameter(clazz.getSuperclass());
 			}

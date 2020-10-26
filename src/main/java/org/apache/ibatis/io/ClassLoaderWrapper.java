@@ -155,7 +155,7 @@ public class ClassLoaderWrapper {
 				// 获得 URL ，不带 /
 				// look for the resource as passed in...
 				url = cl.getResource(resource);
-				
+
 				// 获得 URL ，带 /
 				// ...but some class loaders want this leading "/", so we'll add it
 				// and try again if we didn't find the resource
