@@ -100,8 +100,17 @@ public class MapperAnnotationBuilder {
 	private static final Set<Class<? extends Annotation>> SQL_ANNOTATION_TYPES = new HashSet<>();
 	private static final Set<Class<? extends Annotation>> SQL_PROVIDER_ANNOTATION_TYPES = new HashSet<>();
 
+  /**
+   * 全局配置对象
+   */
 	private final Configuration configuration;
+  /**
+   * Mapper 构造器小助手
+   */
 	private final MapperBuilderAssistant assistant;
+  /**
+   * Mapper 接口的 Class 对象
+   */
 	private final Class<?> type;
 
 	static {
@@ -126,16 +135,20 @@ public class MapperAnnotationBuilder {
 	public void parse() {
 		String resource = type.toString();
 		if (!configuration.isResourceLoaded(resource)) {
+		  // 加载该接口对应的 XML 文件
 			loadXmlResource();
 			configuration.addLoadedResource(resource);
 			assistant.setCurrentNamespace(type.getName());
+			// 解析 Mapper 接口的 @CacheNamespace 注解，创建缓存
 			parseCache();
+			// 解析 Mapper 接口的 @CacheNamespaceRef 注解，引用其他命名空间
 			parseCacheRef();
 			Method[] methods = type.getMethods();
 			for (Method method : methods) {
 				try {
 					// issue #237
-					if (!method.isBridge()) {
+					if (!method.isBridge()) { // 如果不是桥接方法
+					  // 解析方法上面的注解
 						parseStatement(method);
 					}
 				} catch (IncompleteElementException e) {
@@ -178,19 +191,26 @@ public class MapperAnnotationBuilder {
 				}
 			}
 			if (inputStream != null) {
+			  // 创建 XMLMapperBuilder 对象
 				XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(),
 						xmlResource, configuration.getSqlFragments(), type.getName());
+				// 解析该 XML 文件
 				xmlParser.parse();
 			}
 		}
 	}
 
 	private void parseCache() {
+	  // 获取 @CacheNamespace 注解
 		CacheNamespace cacheDomain = type.getAnnotation(CacheNamespace.class);
 		if (cacheDomain != null) {
+		  // 缓存数量
 			Integer size = cacheDomain.size() == 0 ? null : cacheDomain.size();
+			// 多久清空缓存，0表示不清空
 			Long flushInterval = cacheDomain.flushInterval() == 0 ? null : cacheDomain.flushInterval();
+			// 获取缓存配置
 			Properties props = convertToProperties(cacheDomain.properties());
+			// 创建一个缓存
 			assistant.useNewCache(cacheDomain.implementation(), cacheDomain.eviction(), flushInterval, size,
 					cacheDomain.readWrite(), cacheDomain.blocking(), props);
 		}
@@ -208,6 +228,7 @@ public class MapperAnnotationBuilder {
 	}
 
 	private void parseCacheRef() {
+	  // 获取 CacheNamespaceRef 注解
 		CacheNamespaceRef cacheDomainRef = type.getAnnotation(CacheNamespaceRef.class);
 		if (cacheDomainRef != null) {
 			Class<?> refType = cacheDomainRef.value();
@@ -221,6 +242,7 @@ public class MapperAnnotationBuilder {
 			}
 			String namespace = (refType != void.class) ? refType.getName() : refName;
 			try {
+			  // 设置引用的缓存命名空间
 				assistant.useCacheRef(namespace);
 			} catch (IncompleteElementException e) {
 				configuration.addIncompleteCacheRef(new CacheRefResolver(assistant, namespace));

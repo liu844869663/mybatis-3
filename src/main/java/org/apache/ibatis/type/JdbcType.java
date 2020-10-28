@@ -70,17 +70,17 @@ public enum JdbcType {
   TIMESTAMP_WITH_TIMEZONE(Types.TIMESTAMP_WITH_TIMEZONE); // JDBC 4.2 JDK8
 
 
-	/**
-     * 类型编号,此处代码不规范
-     */
+  /**
+   * JDBC 类型对应的编号
+   */
   public final int TYPE_CODE;
   /**
-   * 代码编号和 {@link JdbcType} 的映射
+   * 编号与 JDBC 类型的映射
    */
   private static Map<Integer,JdbcType> codeLookup = new HashMap<>();
 
   static {
-	// 初始化 codeLookup
+    // 将 JdbcType 枚举中的值全部转换成映射关系存放至 Map 中
     for (JdbcType type : JdbcType.values()) {
       codeLookup.put(type.TYPE_CODE, type);
     }

@@ -25,6 +25,9 @@ import org.apache.ibatis.mapping.ResultMapping;
  * @author Eduardo Macarron
  */
 public class ResultMapResolver {
+  /**
+   * Mapper 构造器助手
+   */
 	private final MapperBuilderAssistant assistant;
 	/**
 	 * ResultMap 编号
@@ -62,9 +65,15 @@ public class ResultMapResolver {
 		this.autoMapping = autoMapping;
 	}
 
+  /**
+   * 根据该 ResultMap 的相关信息进行解析
+   * 通过 ResultMap 的 Builder 进行构建
+   * 将 ResultMap 保存至 Configuration 全局配置
+   *
+   * @return ResultMap 对象
+   */
 	public ResultMap resolve() {
-		return assistant.addResultMap(this.id, this.type, this.extend, this.discriminator, this.resultMappings,
-				this.autoMapping);
+		return assistant.addResultMap(this.id, this.type, this.extend, this.discriminator, this.resultMappings, this.autoMapping);
 	}
 
 }

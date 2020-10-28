@@ -31,15 +31,46 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 public class ResultMapping {
 
 	private Configuration configuration;
+  /**
+   * Java 字段
+   */
 	private String property;
+  /**
+   * JDBC 列名
+   */
 	private String column;
+  /**
+   * Java 类型
+   */
 	private Class<?> javaType;
+  /**
+   * JDBC类型
+   */
 	private JdbcType jdbcType;
+  /**
+   * 类型处理器
+   */
 	private TypeHandler<?> typeHandler;
+  /**
+   * 对应的 resultMapId
+   * 例如 <resultMap /> 标签中的 <association/> 标签会生成一个 ResultMap 对象，则这个属性对应该 ResultMap 对象的Id
+   */
 	private String nestedResultMapId;
+  /**
+   * 关联的子查询 Id
+   */
 	private String nestedQueryId;
+  /**
+   * 不能为 null 的列名
+   */
 	private Set<String> notNullColumns;
+  /**
+   * 列名前缀
+   */
 	private String columnPrefix;
+  /**
+   * 具有的标记
+   */
 	private List<ResultFlag> flags;
 	private List<ResultMapping> composites;
 	private String resultSet;

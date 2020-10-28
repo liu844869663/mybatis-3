@@ -32,8 +32,17 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  * @author Clinton Begin
  */
 public abstract class BaseBuilder {
+  /**
+   * 全局配置信息
+   */
 	protected final Configuration configuration;
+  /**
+   * 别名注册表
+   */
 	protected final TypeAliasRegistry typeAliasRegistry;
+  /**
+   * 类型处理器注册表
+   */
 	protected final TypeHandlerRegistry typeHandlerRegistry;
 
 	public BaseBuilder(Configuration configuration) {
@@ -58,14 +67,17 @@ public abstract class BaseBuilder {
 	}
 
 	protected Boolean booleanValueOf(String value, Boolean defaultValue) {
+	  // String -> Boolean
 		return value == null ? defaultValue : Boolean.valueOf(value);
 	}
 
 	protected Integer integerValueOf(String value, Integer defaultValue) {
+    // String -> Integer
 		return value == null ? defaultValue : Integer.valueOf(value);
 	}
 
 	protected Set<String> stringSetValueOf(String value, String defaultValue) {
+    // String -> Set<String>
 		value = value == null ? defaultValue : value;
 		return new HashSet<>(Arrays.asList(value.split(",")));
 	}
@@ -103,14 +115,18 @@ public abstract class BaseBuilder {
 		}
 	}
 
+  /**
+   * 根据别名创建一个对应的实例对象
+   *
+   * @param alias 别名
+   * @return 实例对象
+   */
 	protected Object createInstance(String alias) {
-		// <1> 获得对应的类型
 		Class<?> clazz = resolveClass(alias);
 		if (clazz == null) {
 			return null;
 		}
 		try {
-			// <2> 创建对象
 			return resolveClass(alias).getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			throw new BuilderException("Error creating instance. Cause: " + e, e);
@@ -147,7 +163,6 @@ public abstract class BaseBuilder {
 			return null;
 		}
 		// javaType ignored for injected handlers see issue #746 for full detail
-		// 先获得 TypeHandler 对象
 		TypeHandler<?> handler = typeHandlerRegistry.getMappingTypeHandler(typeHandlerType);
 		if (handler == null) { // 如果不存在，进行创建 TypeHandler 对象
 			// not in registry, create a new one

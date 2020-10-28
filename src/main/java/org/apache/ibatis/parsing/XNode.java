@@ -73,24 +73,31 @@ public class XNode {
     return builder.toString();
   }
 
+  /**
+   * 自动生成某个标签的 id 属性
+   *
+   * @return 同一个 XML 文件中的唯一表示符
+   */
   public String getValueBasedIdentifier() {
     StringBuilder builder = new StringBuilder();
     XNode current = this;
     while (current != null) {
       if (current != this) {
+        // 如果不是当前节点则添加一个分隔符
         builder.insert(0, "_");
       }
+      // 获取标识符，优先级顺序：id > value > property
       String value = current.getStringAttribute("id",
-          current.getStringAttribute("value",
-              current.getStringAttribute("property", null)));
+        current.getStringAttribute("value", current.getStringAttribute("property", null)));
+      // 使用 [] 括起来
       if (value != null) {
         value = value.replace('.', '_');
         builder.insert(0, "]");
-        builder.insert(0,
-            value);
+        builder.insert(0, value);
         builder.insert(0, "[");
       }
       builder.insert(0, current.getName());
+      // 递归获取父节点
       current = current.getParent();
     }
     return builder.toString();

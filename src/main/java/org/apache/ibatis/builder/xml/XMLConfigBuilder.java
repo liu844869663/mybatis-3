@@ -96,6 +96,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 	private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
 		// <1> 创建 Configuration 对象
 		super(new Configuration());
+		// 创建一个当前线程的上下文，记录错误信息
 		ErrorContext.instance().resource("SQL Mapper Configuration");
 		// <2> 设置 Configuration 的 variables 属性
 		this.configuration.setVariables(props);
@@ -121,32 +122,32 @@ public class XMLConfigBuilder extends BaseBuilder {
 			// issue #117 read properties first
 			// <1> 解析 <properties /> 标签
 			propertiesElement(root.evalNode("properties"));
-			// <2> 解析 <settings /> 标签
+			// <2> 解析 <settings /> 标签，解析配置生成 Properties 对象
 			Properties settings = settingsAsProperties(root.evalNode("settings"));
-			// <3> 加载自定义 VFS 实现类
+			// 根据配置加载自定义 VFS 实现类
 			loadCustomVfs(settings);
-			// <4> 加载自定义的 Log 实现类
+			// 根据配置加载自定义的 Log 实现类
 			loadCustomLogImpl(settings);
-			// <4> 解析 <typeAliases /> 标签
+			// <3> 解析 <typeAliases /> 标签，生成别名与类的映射关系
 			typeAliasesElement(root.evalNode("typeAliases"));
-			// <5> 解析 <plugins /> 标签
+			// <4> 解析 <plugins /> 标签，添加自定义拦截器插件
 			pluginElement(root.evalNode("plugins"));
-			// <6> 解析 <objectFactory /> 标签
+			// <5> 解析 <objectFactory /> 标签，自定义实例工厂
 			objectFactoryElement(root.evalNode("objectFactory"));
-			// <7> 解析 <objectWrapperFactory /> 标签
+			// <6> 解析 <objectWrapperFactory /> 标签，自定义 ObjectWrapperFactory 工厂，无默认实现
 			objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
-			// <8> 解析 <reflectorFactory /> 标签
+			// <7> 解析 <reflectorFactory /> 标签，自定义 Reflector 工厂
 			reflectorFactoryElement(root.evalNode("reflectorFactory"));
-			// <9> 赋值 <settings /> 到 Configuration 属性
+			// 将 <settings /> 配置信息添加到 Configuration 属性
 			settingsElement(settings);
 			// read it after objectFactory and objectWrapperFactory issue #631
-			// <10> 解析 <environments /> 标签
+			// <8> 解析 <environments /> 标签，自定义当前环境信息
 			environmentsElement(root.evalNode("environments"));
-			// <11> 解析 <databaseIdProvider /> 标签
+			// <9> 解析 <databaseIdProvider /> 标签，数据库标识符
 			databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-			// <12> 解析 <typeHandlers /> 标签
+			// <10> 解析 <typeHandlers /> 标签，自定义类型处理器
 			typeHandlerElement(root.evalNode("typeHandlers"));
-			// <13> 解析 <mappers /> 标签
+			// <11> 解析 <mappers /> 标签，扫描Mapper接口并进行解析
 			mapperElement(root.evalNode("mappers"));
 		} catch (Exception e) {
 			throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -367,6 +368,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 			// <2> 获得 Properties 对象
 			Properties properties = context.getChildrenAsProperties();
 			// <3> 创建 DatabaseIdProvider 对象，并设置对应的属性
+      // 在 Configuration 的构造方法中已经初始化了 DB_VENDOR 为对应的 org.apache.ibatis.mapping.VendorDatabaseIdProvider 对象
 			databaseIdProvider = (DatabaseIdProvider) resolveClass(type).getDeclaredConstructor().newInstance();
 			databaseIdProvider.setProperties(properties);
 		}

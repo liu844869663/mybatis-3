@@ -54,10 +54,16 @@ public class SqlSessionFactoryBuilder {
 	 */
 	public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
 		try {
-			// <1> 创建 XMLConfigBuilder 对象
+			/*
+			 * <1> 创建 XMLConfigBuilder 对象
+			 * 会生成一个 XPathParser，包含 Document 对象
+			 * 会创建一个 Configuration 全局配置对象
+			 */
 			XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
-			// <2> 执行 XML 解析
-	        // <3> 创建 DefaultSqlSessionFactory 对象
+			/*
+			 * <2> 解析 XML 文件并配置到 Configuration 全局配置对象中
+			 * <3> 创建 DefaultSqlSessionFactory 对象
+			 */
 			return build(parser.parse());
 		} catch (Exception e) {
 			throw ExceptionFactory.wrapException("Error building SqlSession.", e);

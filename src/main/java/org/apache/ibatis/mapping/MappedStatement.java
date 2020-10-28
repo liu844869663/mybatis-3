@@ -33,27 +33,66 @@ import org.apache.ibatis.session.Configuration;
  */
 public final class MappedStatement {
 
+  /**
+   * XML 资源路径
+   */
 	private String resource;
 	private Configuration configuration;
+  /**
+   * Statement 的Id：`${namespace}.${id}`
+   */
 	private String id;
 	private Integer fetchSize;
 	private Integer timeout;
+  /**
+   * Statement 的类型：STATEMENT, PREPARED, CALLABLE，默认 PREPARED
+   */
 	private StatementType statementType;
 	private ResultSetType resultSetType;
+  /**
+   * SQL 相关信息
+   */
 	private SqlSource sqlSource;
+  /**
+   * 缓存对象
+   */
 	private Cache cache;
 	private ParameterMap parameterMap;
 	private List<ResultMap> resultMaps;
+  /**
+   * 是否清空缓存
+   */
 	private boolean flushCacheRequired;
+  /**
+   * 是否使用缓存
+   */
 	private boolean useCache;
 	private boolean resultOrdered;
+  /**
+   * SQL 语句类型
+   */
 	private SqlCommandType sqlCommandType;
+  /**
+   * key 的生成器
+   */
 	private KeyGenerator keyGenerator;
+  /**
+   * key 的生成器的 Java 属性
+   */
 	private String[] keyProperties;
+  /**
+   * key 的生成器的 column 列名
+   */
 	private String[] keyColumns;
+  /**
+   * 是否有内嵌的 ResultMap
+   */
 	private boolean hasNestedResultMaps;
 	private String databaseId;
 	private Log statementLog;
+  /**
+   * 语言驱动，默认为XMLLanguageDriver
+   */
 	private LanguageDriver lang;
 	private String[] resultSets;
 
@@ -70,13 +109,11 @@ public final class MappedStatement {
 			mappedStatement.sqlSource = sqlSource;
 			mappedStatement.statementType = StatementType.PREPARED;
 			mappedStatement.resultSetType = ResultSetType.DEFAULT;
-			mappedStatement.parameterMap = new ParameterMap.Builder(configuration, "defaultParameterMap", null,
-					new ArrayList<>()).build();
+			mappedStatement.parameterMap = new ParameterMap.Builder(configuration, "defaultParameterMap", null, new ArrayList<>()).build();
 			mappedStatement.resultMaps = new ArrayList<>();
 			mappedStatement.sqlCommandType = sqlCommandType;
-			mappedStatement.keyGenerator = configuration.isUseGeneratedKeys()
-					&& SqlCommandType.INSERT.equals(sqlCommandType) ? Jdbc3KeyGenerator.INSTANCE
-							: NoKeyGenerator.INSTANCE;
+			mappedStatement.keyGenerator = configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType)
+        ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
 			String logId = id;
 			if (configuration.getLogPrefix() != null) {
 				logId = configuration.getLogPrefix() + id;

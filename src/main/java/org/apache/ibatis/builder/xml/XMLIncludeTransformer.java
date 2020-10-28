@@ -54,7 +54,7 @@ public class XMLIncludeTransformer {
 
 	/**
 	 * Recursively apply includes through all SQL fragments.
-	 * 
+	 *
 	 * @param source           Include node in DOM tree
 	 * @param variablesContext Current context for static variables with values
 	 */
@@ -78,7 +78,8 @@ public class XMLIncludeTransformer {
 			// <1.4> 移除 <include /> 标签自身
 			toInclude.getParentNode().removeChild(toInclude);
 		} else if (source.getNodeType() == Node.ELEMENT_NODE) { // <2> 如果节点类型为 Node.ELEMENT_NODE
-			// <2.1> 如果在处理 <include /> 标签中，则替换其上的属性，例如 <sql id="123" lang="${cpu}"> 的情况，lang 属性是可以被替换的
+			// <2.1> 如果在处理 <include /> 标签中，则替换其上的属性，进入以下逻辑的是 <sql />
+      // 例如 <sql id="123" lang="${cpu}"> 的情况，lang 属性是可以被替换的
 			if (included && !variablesContext.isEmpty()) {
 				// replace variables in attribute values
 				NamedNodeMap attributes = source.getAttributes();
@@ -122,7 +123,7 @@ public class XMLIncludeTransformer {
 
 	/**
 	 * Read placeholders and their values from include node definition.
-	 * 
+	 *
 	 * @param node                      Include node instance
 	 * @param inheritedVariablesContext Current context used for replace variables
 	 *                                  in new variables values
