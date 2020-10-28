@@ -91,7 +91,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 			// <1> 如果是 Object 定义的方法，直接调用
 			if (Object.class.equals(method.getDeclaringClass())) {
 				return method.invoke(this, args);
-			} else if (method.isDefault()) { // 是否为JDK默认的方法，default修饰的方法
+			} else if (method.isDefault()) { // 是否有 default 修饰的方法
 				// 针对Java7以上版本对动态类型语言的支持
 				if (privateLookupInMethod == null) {
 					return invokeDefaultMethodJava8(proxy, method, args);
@@ -102,9 +102,9 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 		} catch (Throwable t) {
 			throw ExceptionUtil.unwrapThrowable(t);
 		}
-		// <3.1> 获得 MapperMethod 对象
+		// <2.1> 获得 MapperMethod 对象
 		final MapperMethod mapperMethod = cachedMapperMethod(method);
-		// <3.2> 执行 MapperMethod 方法
+		// <2.2> 执行 MapperMethod 方法
 		return mapperMethod.execute(sqlSession, args);
 	}
 

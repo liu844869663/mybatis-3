@@ -42,7 +42,7 @@ public class MapperRegistry {
 	private final Configuration config;
 	/**
 	 * MapperProxyFactory 的映射
-	 * 
+	 *
 	 * KEY：Mapper 接口
 	 */
 	private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
@@ -87,6 +87,7 @@ public class MapperRegistry {
 				// If the type is already known, it won't try.
 				// <4> 解析 Mapper 的注解配置
 				MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+				// 解析 Mapper 接口上面的注解和 Mapper 接口对应的 XML 文件
 				parser.parse();
 				// <5> 标记加载完成
 				loadCompleted = true;
