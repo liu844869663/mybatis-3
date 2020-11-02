@@ -20,10 +20,10 @@ package org.apache.ibatis.scripting.xmltags;
  */
 public interface SqlNode {
 	/**
-	 * 应用当前 SQL Node 节点
+	 * 应用当前 SQLNode 节点
 	 *
-	 * @param context 上下文
-	 * @return 当前 SQL Node 节点是否应用成功。
+	 * @param context 正在解析 SQL 语句的上下文
+	 * @return 是否应用成功
 	 */
 	boolean apply(DynamicContext context);
 }

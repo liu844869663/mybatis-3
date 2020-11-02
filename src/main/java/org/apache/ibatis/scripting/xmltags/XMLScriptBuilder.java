@@ -43,11 +43,11 @@ public class XMLScriptBuilder extends BaseBuilder {
 	 */
 	private boolean isDynamic;
 	/**
-	 * SQL 方法类型
+	 * SQL 的 Java 入参类型
 	 */
 	private final Class<?> parameterType;
 	/**
-	 * NodeNodeHandler 的映射
+	 * NodeHandler 的映射
 	 */
 	private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<>();
 
@@ -75,9 +75,11 @@ public class XMLScriptBuilder extends BaseBuilder {
 	}
 
 	public SqlSource parseScriptNode() {
+	  // 解析 XML 或者注解中定义的 SQL
 		MixedSqlNode rootSqlNode = parseDynamicTags(context);
 		SqlSource sqlSource;
 		if (isDynamic) {
+		  // 动态语句，使用了 ${} 也算
 			sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
 		} else {
 			sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
@@ -88,24 +90,30 @@ public class XMLScriptBuilder extends BaseBuilder {
 	protected MixedSqlNode parseDynamicTags(XNode node) {
 		// <1> 创建 SqlNode 数组
 		List<SqlNode> contents = new ArrayList<>();
-		// <2> 遍历 SQL 节点的所有子节点
+		/*
+		 * <2> 遍历 SQL 节点中所有子节点
+		 * 这里会对该节点内的所有内容进行处理然后返回 NodeList 对象
+		 * 1. 文本内容会被解析成 '<#text></#text>' 节点，就算一个换行符也会解析成这个
+		 * 2. <![CDATA[ content ]]> 会被解析成 '<#cdata-section>content</#cdata-section>' 节点
+		 * 3. 还有其他MyBatis自定义的标签<if /> <where />
+		 */
 		NodeList children = node.getNode().getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
 			// 当前子节点
 			XNode child = node.newXNode(children.item(i));
 			// <2.1> 如果类型是 Node.CDATA_SECTION_NODE 或者 Node.TEXT_NODE 时
-			if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE
-					|| child.getNode().getNodeType() == Node.TEXT_NODE) {
+			if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE // <![CDATA[ ]]>节点
+					|| child.getNode().getNodeType() == Node.TEXT_NODE) { // 纯文本
 				// <2.1.1> 获得内容
 				String data = child.getStringBody("");
 				// <2.1.2> 创建 TextSqlNode 对象
 				TextSqlNode textSqlNode = new TextSqlNode(data);
-				if (textSqlNode.isDynamic()) { // <2.1.2.1> 如果是动态的 TextSqlNode 对象
+				if (textSqlNode.isDynamic()) { // <2.1.2.1> 如果是动态的 TextSqlNode 对象，也就是使用了 '${}'
 					// 添加到 contents 中
 					contents.add(textSqlNode);
 					// 标记为动态 SQL
 					isDynamic = true;
-				} else { // <2.1.2.2> 如果是非动态的 TextSqlNode 对象
+				} else { // <2.1.2.2> 如果是非动态的 TextSqlNode 对象，没有使用 '${}'
 					// <2.1.2> 创建 StaticTextSqlNode 添加到 contents 中
 					contents.add(new StaticTextSqlNode(data));
 				}
@@ -122,6 +130,7 @@ public class XMLScriptBuilder extends BaseBuilder {
 				isDynamic = true;
 			}
 		}
+    // <3> 创建 MixedSqlNode 对象
 		return new MixedSqlNode(contents);
 	}
 
@@ -136,6 +145,9 @@ public class XMLScriptBuilder extends BaseBuilder {
 		void handleNode(XNode nodeToHandle, List<SqlNode> targetContents);
 	}
 
+  /**
+   * <bind />元素允许你在 OGNL 表达式(SQL语句)以外创建一个变量，并将其绑定到当前的上下文
+   */
 	private class BindHandler implements NodeHandler {
 		public BindHandler() {
 			// Prevent Synthetic Access
@@ -264,7 +276,7 @@ public class XMLScriptBuilder extends BaseBuilder {
 			List<SqlNode> otherwiseSqlNodes = new ArrayList<>();
 			// 解析 `<when />` 和 `<otherwise />` 的节点们
 			handleWhenOtherwiseNodes(nodeToHandle, whenSqlNodes, otherwiseSqlNodes);
-			// 获得 `<otherwise />` 的节点
+			// 获得 `<otherwise />` 的节点，存在多个会抛出异常
 			SqlNode defaultSqlNode = getDefaultSqlNode(otherwiseSqlNodes);
 			// 创建 ChooseSqlNode 对象
 			ChooseSqlNode chooseSqlNode = new ChooseSqlNode(whenSqlNodes, defaultSqlNode);

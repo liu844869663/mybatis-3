@@ -118,7 +118,7 @@ public class BeanWrapper extends BaseWrapper {
 			if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
 				// 如果 metaValue 为空，则基于 metaClass 获得返回类型
 				return metaClass.getGetterType(name);
-			// 如果 metaValue 非空，则基于 metaValue 获得返回类型。
+			  // 如果 metaValue 非空，则基于 metaValue 获得返回类型。
 		    // 例如：richType.richMap.nihao ，其中 richMap 是 Map 类型，而 nihao 的类型，需要获得到 nihao 的具体值，才能做真正的判断
 			} else {
 				// 递归判断子表达式 children ，获得返回值的类型

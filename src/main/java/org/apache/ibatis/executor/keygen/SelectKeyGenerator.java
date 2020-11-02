@@ -32,8 +32,19 @@ import org.apache.ibatis.session.RowBounds;
  */
 public class SelectKeyGenerator implements KeyGenerator {
 
+  /**
+   * <selectKey /> 解析成 MappedStatement 对象的 id 的后缀
+   * 例如 <selectKey /> 所在的 MappedStatement 的 id 为 namespace.test
+   * 那么它的 id 就是 namespace.test!selectKey
+   */
   public static final String SELECT_KEY_SUFFIX = "!selectKey";
+  /**
+   * 是否在 SQL 执行后执行
+   */
   private final boolean executeBefore;
+  /**
+   * <selectKey /> 解析成 MappedStatement 对象
+   */
   private final MappedStatement keyStatement;
 
   public SelectKeyGenerator(MappedStatement keyStatement, boolean executeBefore) {

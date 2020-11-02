@@ -16,11 +16,19 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * <bind />节点，允许你在 OGNL 表达式(SQL语句)以外创建一个变量，并将其绑定到当前的上下文
+ *
  * @author Frank D. Martinez [mnesarco]
  */
 public class VarDeclSqlNode implements SqlNode {
 
+  /**
+   * 变量名称
+   */
 	private final String name;
+  /**
+   * 表达式
+   */
 	private final String expression;
 
 	public VarDeclSqlNode(String var, String exp) {
@@ -30,7 +38,9 @@ public class VarDeclSqlNode implements SqlNode {
 
 	@Override
 	public boolean apply(DynamicContext context) {
+	  // 获取该表达式转换后结果
 		final Object value = OgnlCache.getValue(expression, context.getBindings());
+		// 将该结果与变量名称设置到解析 SQL 语句的上下文中，这样接下来的解析过程中可以获取到 name 的值
 		context.bind(name, value);
 		return true;
 	}

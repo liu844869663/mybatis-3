@@ -38,19 +38,19 @@ public class DynamicSqlSource implements SqlSource {
 
 	@Override
 	public BoundSql getBoundSql(Object parameterObject) {
-		// <1> 应用 rootSqlNode
+		// <1> 创建本次解析的动态 SQL 语句的上下文
 		DynamicContext context = new DynamicContext(configuration, parameterObject);
+		// <2> 根据上下文应用整个 SqlNode
 		rootSqlNode.apply(context);
-		// <2> 创建 SqlSourceBuilder 对象
+		// <3> 创建 SqlSourceBuilder 对象
 		SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
-		// <2> 解析出 SqlSource 对象
 		Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+    // <4> 通过 SqlSourceBuilder 将应用后的 SQL 进行转换，变量替换成 ? 占位符，并生成对应的 ParameterMapping 集合
 		SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
-		// <3> 获得 BoundSql 对象
+		// <5> 创建 BoundSql 对象
 		BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
-		// <4> 添加附加参数到 BoundSql 对象中
+		// <6> 添加附加参数到 BoundSql 对象中，因为上一步创建的`BoundSql`对象时候传入的仅是入参信息，没有添加附加参数
 		context.getBindings().forEach(boundSql::setAdditionalParameter);
-		// <5> 返回 BoundSql 对象
 		return boundSql;
 	}
 

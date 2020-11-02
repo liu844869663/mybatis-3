@@ -34,11 +34,11 @@ import org.apache.ibatis.builder.BuilderException;
 public final class OgnlCache {
 
 	/**
-	 * OgnlMemberAccess 单例
+	 * OgnlMemberAccess 单例，用于修改某个对象的成员为可访问
 	 */
 	private static final OgnlMemberAccess MEMBER_ACCESS = new OgnlMemberAccess();
 	/**
-	 * OgnlClassResolver 单例
+	 * OgnlClassResolver 单例，用于创建 Class 对象
 	 */
 	private static final OgnlClassResolver CLASS_RESOLVER = new OgnlClassResolver();
 	/**
@@ -54,23 +54,36 @@ public final class OgnlCache {
 
 	public static Object getValue(String expression, Object root) {
 		try {
-			// <1> 创建 OGNL Context 对象
-			Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
-			// <2> 解析表达式
-            // <3> 获得表达式对应的值
+      /*
+       * <1> 创建 OgnlContext 对象，设置 OGNL 的成员访问器和类解析器，设置根元素为 root 对象
+       * 这里是调用 OgnlContext 的s etRoot 方法直接设置根元素，可以通过 'user.id' 获取结果
+       * 如果是通过 put 方法添加的对象，则取值时需要使用'#'，例如 '#user.id'
+       */
+      Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
+      /*
+       * <2> expression 转换成 Ognl 表达式
+       * <3> 根据 Ognl 表达式获取结果
+       */
 			return Ognl.getValue(parseExpression(expression), context, root);
 		} catch (OgnlException e) {
 			throw new BuilderException("Error evaluating expression '" + expression + "'. Cause: " + e, e);
 		}
 	}
 
-	private static Object parseExpression(String expression) throws OgnlException {
-		Object node = expressionCache.get(expression);
-		if (node == null) {
-			node = Ognl.parseExpression(expression);
-			expressionCache.put(expression, node);
-		}
-		return node;
-	}
+  /**
+   * 根据表达式构建一个 Ognl 表达式
+   *
+   * @param expression 表达式，例如<if test="user.id &gt; 0"> </if>，那这里传入的就是 "user.id &gt; 0"
+   * @return Ognl 表达式
+   * @throws OgnlException 异常
+   */
+  private static Object parseExpression(String expression) throws OgnlException {
+    Object node = expressionCache.get(expression);
+    if (node == null) {
+      node = Ognl.parseExpression(expression);
+      expressionCache.put(expression, node);
+    }
+    return node;
+  }
 
 }

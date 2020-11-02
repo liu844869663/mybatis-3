@@ -32,7 +32,7 @@ public class ExpressionEvaluator {
 	 * 判断表达式对应的值，是否为 true
 	 *
 	 * @param expression      表达式
-	 * @param parameterObject 参数对象
+	 * @param parameterObject 该 SQL 语句的入参
 	 * @return 是否为 true
 	 */
 	public boolean evaluateBoolean(String expression, Object parameterObject) {

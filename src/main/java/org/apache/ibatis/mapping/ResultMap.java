@@ -59,9 +59,10 @@ public class ResultMap {
 	 */
 	private List<ResultMapping> idResultMappings;
 	/**
-	 * 构造方法 ResultMapping 集合
+	 * 构造方法的入参 ResultMapping 集合
+   * 根据参数名称已经排序好了
 	 *
-	 * 和 {@link #propertyResultMappings} 只有一个值
+	 * 和 {@link #propertyResultMappings} 不存在相同元素
 	 */
 	private List<ResultMapping> constructorResultMappings;
 	/**
@@ -69,7 +70,7 @@ public class ResultMap {
 	 */
 	private List<ResultMapping> propertyResultMappings;
 	/**
-	 * 数据库的字段集合
+	 * 数据库的字段集合（全部大写）
 	 */
 	private Set<String> mappedColumns;
 	/**
@@ -77,7 +78,7 @@ public class ResultMap {
 	 */
 	private Set<String> mappedProperties;
 	/**
-	 * Discriminator 对象
+	 * Discriminator 选择器对象
 	 */
 	private Discriminator discriminator;
 	/**
@@ -85,7 +86,7 @@ public class ResultMap {
 	 */
 	private boolean hasNestedResultMaps;
 	/**
-	 * 是否有内嵌的查询
+	 * 是否有嵌套关联的子查询
 	 */
 	private boolean hasNestedQueries;
 	/**
@@ -142,14 +143,13 @@ public class ResultMap {
 			resultMap.propertyResultMappings = new ArrayList<>();
 			final List<String> constructorArgNames = new ArrayList<>();
 			for (ResultMapping resultMapping : resultMap.resultMappings) {
-				// 初始化 hasNestedQueries
+				// 是否有嵌套关联的子查询
 				resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
-				// 初始化 hasNestedResultMaps
-				resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps
-						|| (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
-				// 添加到 mappedColumns
+				// 是否有内嵌的 ResultMap
+				resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps || (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
 				final String column = resultMapping.getColumn();
 				if (column != null) {
+				  // 数据库的字段集合（全部大写）
 					resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH));
 				} else if (resultMapping.isCompositeResult()) {
 					for (ResultMapping compositeResultMapping : resultMapping.getComposites()) {
@@ -159,28 +159,30 @@ public class ResultMap {
 						}
 					}
 				}
-				// 添加到 mappedProperties
 				final String property = resultMapping.getProperty();
 				if (property != null) {
+          // Java 对象的属性集合
 					resultMap.mappedProperties.add(property);
 				}
-				// 初始化 constructorResultMappings
 				if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
+				  // 构造方法的入参 ResultMapping 集合
 					resultMap.constructorResultMappings.add(resultMapping);
 					if (resultMapping.getProperty() != null) {
+					  // 构造方法的参数名称
 						constructorArgNames.add(resultMapping.getProperty());
 					}
-					// 初始化 propertyResultMappings
 				} else {
+				  // 属性 ResultMapping 集合
 					resultMap.propertyResultMappings.add(resultMapping);
 				}
-				// 初始化 idResultMappings
+				// ID ResultMapping 集合
 				if (resultMapping.getFlags().contains(ResultFlag.ID)) {
 					resultMap.idResultMappings.add(resultMapping);
 				}
 			}
-			// 保证 idResultMappings 非空
+
 			if (resultMap.idResultMappings.isEmpty()) {
+			  // 如果 ID ResultMapping 集合为空，则添加所有的 ResultMapping
 				resultMap.idResultMappings.addAll(resultMap.resultMappings);
 			}
 			// 将 constructorResultMappings 排序成符合的构造方法的参数顺序
@@ -257,14 +259,12 @@ public class ResultMap {
 
 		/**
 		 * 获得构造方法的参数名的数组
-		 *
-		 * 因为参数上会有 {@link Param} 注解，所以会使用注解上设置的名字
+     * 如果需要在 <resultMap /> 中使用 <constructor />，需要在构造方法的参数上面都添加好 @Param 注解
 		 *
 		 * @param constructor 构造方法
 		 * @return 参数名数组
 		 */
 		private List<String> getArgNames(Constructor<?> constructor) {
-			// 结果
 			List<String> paramNames = new ArrayList<>();
 			List<String> actualParamNames = null;
 			final Annotation[][] paramAnnotations = constructor.getParameterAnnotations();
@@ -273,12 +273,14 @@ public class ResultMap {
 				String name = null;
 				for (Annotation annotation : paramAnnotations[paramIndex]) {
 					if (annotation instanceof Param) {
+					  // 获取 @Param 注解的值，作为参数名称
 						name = ((Param) annotation).value();
 						break;
 					}
 				}
 				if (name == null && resultMap.configuration.isUseActualParamName()) {
 					if (actualParamNames == null) {
+					  // 通过反射获取到构造方法的所有参数名称
 						actualParamNames = ParamNameUtil.getParamNames(constructor);
 					}
 					if (actualParamNames.size() > paramIndex) {

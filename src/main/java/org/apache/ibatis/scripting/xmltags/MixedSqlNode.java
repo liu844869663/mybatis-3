@@ -18,9 +18,14 @@ package org.apache.ibatis.scripting.xmltags;
 import java.util.List;
 
 /**
+ * 因为节点可能会嵌套很多个，所以会将一个 SQL 语句解析成一个 MixedSqlNode 对象
+ *
  * @author Clinton Begin
  */
 public class MixedSqlNode implements SqlNode {
+  /**
+   * 动态节点集合
+   */
 	private final List<SqlNode> contents;
 
 	public MixedSqlNode(List<SqlNode> contents) {
@@ -29,6 +34,7 @@ public class MixedSqlNode implements SqlNode {
 
 	@Override
 	public boolean apply(DynamicContext context) {
+	  // 逐个应用
 		contents.forEach(node -> node.apply(context));
 		return true;
 	}

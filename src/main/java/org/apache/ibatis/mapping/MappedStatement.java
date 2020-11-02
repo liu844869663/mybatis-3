@@ -34,18 +34,30 @@ import org.apache.ibatis.session.Configuration;
 public final class MappedStatement {
 
   /**
-   * XML 资源路径
+   * XML 映射文件路径，例如：xxx/xxx/xxx.xml
    */
 	private String resource;
+  /**
+   * 全局配置对象
+   */
 	private Configuration configuration;
   /**
-   * Statement 的Id：`${namespace}.${id}`
+   * 唯一编号：`${namespace}.${id}`
    */
 	private String id;
+  /**
+   * 这是一个给驱动的建议值，尝试让驱动程序每次批量返回的结果行数等于这个设置值
+   * 默认值为未设置（unset）（依赖驱动）
+   */
 	private Integer fetchSize;
+  /**
+   * 这个设置是在抛出异常之前，驱动程序等待数据库返回请求结果的秒数
+   * 默认值为未设置（unset）（依赖数据库驱动）
+   */
 	private Integer timeout;
   /**
-   * Statement 的类型：STATEMENT, PREPARED, CALLABLE，默认 PREPARED
+   * Statement 的类型：STATEMENT PREPARED CALLABLE，默认 PREPARED
+   * 分别对应：Statement PreparedStatement  CallableStatement
    */
 	private StatementType statementType;
 	private ResultSetType resultSetType;
@@ -57,7 +69,14 @@ public final class MappedStatement {
    * 缓存对象
    */
 	private Cache cache;
+  /**
+   * 入参类型
+   */
 	private ParameterMap parameterMap;
+  /**
+   * ResultMap对象
+   * 配置多个时需要加上 namespace 并以逗号分隔
+   */
 	private List<ResultMap> resultMaps;
   /**
    * 是否清空缓存
@@ -67,6 +86,11 @@ public final class MappedStatement {
    * 是否使用缓存
    */
 	private boolean useCache;
+  /**
+   * 这个设置仅针对嵌套结果 select 语句，默认值：false
+   * 如果为 true，将会假设包含了嵌套结果集或是分组，当返回一个主结果行时，就不会产生对前面结果集的引用
+   * 这就使得在获取嵌套结果集的时候不至于内存不够用
+   */
 	private boolean resultOrdered;
   /**
    * SQL 语句类型
@@ -88,12 +112,22 @@ public final class MappedStatement {
    * 是否有内嵌的 ResultMap
    */
 	private boolean hasNestedResultMaps;
+  /**
+   * 数据库表示
+   */
 	private String databaseId;
+  /**
+   * 日志对象
+   */
 	private Log statementLog;
   /**
    * 语言驱动，默认为XMLLanguageDriver
    */
 	private LanguageDriver lang;
+  /**
+   * 这个设置仅适用于多结果集的情况
+   * 它将列出语句执行后返回的结果集并赋予每个结果集一个名称，多个名称之间以逗号分隔
+   */
 	private String[] resultSets;
 
 	MappedStatement() {

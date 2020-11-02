@@ -19,6 +19,12 @@ package org.apache.ibatis.parsing;
  * @author Clinton Begin
  */
 public interface TokenHandler {
+  /**
+   * 处理变量，例如解析 #{id, JdbcType=INTEGER}
+   *
+   * @param content 带处理的变量
+   * @return 占位符
+   */
   String handleToken(String content);
 }
 

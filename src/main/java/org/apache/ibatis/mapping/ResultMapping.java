@@ -44,7 +44,7 @@ public class ResultMapping {
    */
 	private Class<?> javaType;
   /**
-   * JDBC类型
+   * JDBC 类型
    */
 	private JdbcType jdbcType;
   /**
@@ -72,6 +72,9 @@ public class ResultMapping {
    * 具有的标记
    */
 	private List<ResultFlag> flags;
+  /**
+   * 关联嵌套查询的属性映射
+   */
 	private List<ResultMapping> composites;
 	private String resultSet;
 	private String foreignColumn;

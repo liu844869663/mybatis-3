@@ -101,6 +101,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 
 		// Parse selectKey after includes and remove them.
     // 将该节点的子节点 <selectKey /> 解析成 SelectKeyGenerator 生成器
+    // 会创建一个 MappedStatement 对象，id 为 '${namespace}.${id}!selectKey'
 		processSelectKeyNodes(id, parameterTypeClass, langDriver);
 
 		// Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
@@ -162,7 +163,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 	private void parseSelectKeyNodes(String parentId, List<XNode> list, Class<?> parameterTypeClass,
 			LanguageDriver langDriver, String skRequiredDatabaseId) {
 		for (XNode nodeToHandle : list) {
-			// <2> 获得完整 id ，格式为 `${parentId}${id}!selectKey`
+			// <2> 获得完整 id ，格式为 `${id}!selectKey`
 			String id = parentId + SelectKeyGenerator.SELECT_KEY_SUFFIX;
 			// <3> 获得 databaseId ， 判断 databaseId 是否匹配
 			String databaseId = nodeToHandle.getStringAttribute("databaseId");
@@ -205,7 +206,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 				parameterMap, parameterTypeClass, resultMap, resultTypeClass, resultSetTypeEnum, flushCache, useCache,
 				resultOrdered, keyGenerator, keyProperty, keyColumn, databaseId, langDriver, null);
 
-		// <2.1> 获得 SelectKeyGenerator 的编号，格式为 `${namespace}.${id}`
+		// <2.1> 获得 SelectKeyGenerator 的编号，格式为 `${namespace}.${id}!selectKey`
 		id = builderAssistant.applyCurrentNamespace(id, false);
 
 		// <2.2> 获得 MappedStatement 对象

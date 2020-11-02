@@ -39,21 +39,26 @@ public class SqlSourceBuilder extends BaseBuilder {
 		super(configuration);
 	}
 
-	/**
-	 * 执行解析原始 SQL ，成为 SqlSource 对象
-	 *
-	 * @param originalSql          原始 SQL
-	 * @param parameterType        参数类型
-	 * @param additionalParameters 附加参数集合。可能是空集合，也可能是
-	 *                             {@link org.apache.ibatis.scripting.xmltags.DynamicContext#bindings} 集合
-	 * @return SqlSource 对象
-	 */
+  /**
+   * 执行解析原始 SQL ，成为 SqlSource 对象
+   *
+   * @param originalSql          原始 SQL
+   * @param parameterType        参数类型
+   * @param additionalParameters 上下文的参数集合，包含附加参数集合（通过 <bind /> 标签生成的，或者`<foreach />`标签中的集合的元素）
+   *                             RawSqlSource传入空集合
+   *                             DynamicSqlSource传入 {@link org.apache.ibatis.scripting.xmltags.DynamicContext#bindings} 集合
+   * @return SqlSource 对象
+   */
 	public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
 		// <1> 创建 ParameterMappingTokenHandler 对象
 		ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
 		// <2> 创建 GenericTokenParser 对象
 		GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
-		// <3> 执行解析
+		/*
+		 * <3> 执行解析
+		 * 将我们在 SQL 定义的所有占位符 #{content} 都替换成 ?
+		 * 并生成对应的 ParameterMapping 对象保存在 ParameterMappingTokenHandler 中
+		 */
 		String sql = parser.parse(originalSql);
 		// <4> 创建 StaticSqlSource 对象
 		return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
@@ -62,7 +67,7 @@ public class SqlSourceBuilder extends BaseBuilder {
 	private static class ParameterMappingTokenHandler extends BaseBuilder implements TokenHandler {
 
 		/**
-		 * ParameterMapping 数组
+		 * 我们在 SQL 语句中定义的占位符对应的 ParameterMapping 数组，根据顺序来的
 		 */
 		private List<ParameterMapping> parameterMappings = new ArrayList<>();
 		/**
@@ -93,33 +98,42 @@ public class SqlSourceBuilder extends BaseBuilder {
 			return "?";
 		}
 
+    /**
+     * 根据内容构建一个 ParameterMapping 对象
+     *
+     * @param content 我们在 SQL 语句中定义的占位符
+     * @return ParameterMapping 对象
+     */
 		private ParameterMapping buildParameterMapping(String content) {
-			// <1> 解析成 Map 集合
+			// <1> 将字符串解析成 key-value 键值对保存
+      // 其中有一个key为"property"，value就是对应的属性名称
 			Map<String, String> propertiesMap = parseParameterMapping(content);
 			// <2> 获得属性的名字和类型
 			String property = propertiesMap.get("property"); // 名字
 			Class<?> propertyType; // 类型
 			if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
 				propertyType = metaParameters.getGetterType(property);
-			} else if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
+			} else if (typeHandlerRegistry.hasTypeHandler(parameterType)) { // 有对应的类型处理器，例如java.lang.string
 				propertyType = parameterType;
-			} else if (JdbcType.CURSOR.name().equals(propertiesMap.get("jdbcType"))) {
+			} else if (JdbcType.CURSOR.name().equals(propertiesMap.get("jdbcType"))) { // 设置的 Jdbc Type 是游标
 				propertyType = java.sql.ResultSet.class;
-			} else if (property == null || Map.class.isAssignableFrom(parameterType)) {
+			} else if (property == null || Map.class.isAssignableFrom(parameterType)) { // 是 Map 集合
 				propertyType = Object.class;
-			} else {
+			} else { // 类对象
 				MetaClass metaClass = MetaClass.forClass(parameterType, configuration.getReflectorFactory());
 				if (metaClass.hasGetter(property)) {
+				  // 通过反射获取到其对应的 Java Type
 					propertyType = metaClass.getGetterType(property);
 				} else {
 					propertyType = Object.class;
 				}
 			}
-			// <3> 创建 ParameterMapping.Builder 对象
+			// <3> 创建 ParameterMapping.Builder 构建者对象
 			ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
 			// <3.1> 初始化 ParameterMapping.Builder 对象的属性
 			Class<?> javaType = propertyType;
 			String typeHandlerAlias = null;
+			// 遍历 SQL 配置的占位符信息，例如这样配置："name = #{name, jdbcType=VARCHAR}"
 			for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
 				String name = entry.getKey();
 				String value = entry.getValue();
@@ -146,7 +160,7 @@ public class SqlSourceBuilder extends BaseBuilder {
 					throw new BuilderException("An invalid property '" + name + "' was found in mapping #{" + content + "}.  Valid properties are " + PARAMETER_PROPERTIES);
 				}
 			}
-			// <3.2> 如果 typeHandlerAlias 非空，则获得对应的 TypeHandler 对象，并设置到 ParameterMapping.Builder 对象中
+			// <3.2> 如果 TypeHandler 类型处理器的别名非空
 			if (typeHandlerAlias != null) {
 				builder.typeHandler(resolveTypeHandler(javaType, typeHandlerAlias));
 			}

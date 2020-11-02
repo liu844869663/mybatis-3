@@ -258,15 +258,15 @@ public class MapperBuilderAssistant extends BaseBuilder {
 						.flushCacheRequired(valueOrDefault(flushCache, !isSelect))
 						.useCache(valueOrDefault(useCache, isSelect)).cache(currentCache);
 
-		// 生成 ParameterMap 对象
+		// <4> 生成 ParameterMap 对象
 		ParameterMap statementParameterMap = getStatementParameterMap(parameterMap, parameterType, id);
 		if (statementParameterMap != null) {
 			statementBuilder.parameterMap(statementParameterMap);
 		}
 
-		// <4> 创建 MappedStatement 对象
+		// <5> 创建 MappedStatement 对象
 		MappedStatement statement = statementBuilder.build();
-		// <5> 添加到 configuration 中
+		// <6> 添加到 configuration 中
 		configuration.addMappedStatement(statement);
 		return statement;
 	}
@@ -322,15 +322,16 @@ public class MapperBuilderAssistant extends BaseBuilder {
 			JdbcType jdbcType, String nestedSelect, String nestedResultMap, String notNullColumn, String columnPrefix,
 			Class<? extends TypeHandler<?>> typeHandler, List<ResultFlag> flags, String resultSet, String foreignColumn,
 			boolean lazy) {
-		// 解析对应的 Java Type
+		// <1> 解析对应的 Java Type
 		Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
 		// 解析对应的 TypeHandler ，一般不会设置
 		TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
 		List<ResultMapping> composites;
-		// 解析组合字段名称成 ResultMapping 集合，涉及「关联的嵌套查询」
+		// <2> 解析组合字段名称成 ResultMapping 集合，涉及「关联的嵌套查询」
 		if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
 			composites = Collections.emptyList();
 		} else {
+		  // RequestMapping 关联了子查询，如果 column 配置了多个则一一再创建 RequestMapping 对象
 			composites = parseCompositeColumnName(column);
 		}
 		// 创建 ResultMapping 对象
@@ -363,6 +364,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
 		// 分词，解析其中的 property 和 column 的组合对
 		if (columnName != null && (columnName.indexOf('=') > -1 || columnName.indexOf(',') > -1)) {
 			StringTokenizer parser = new StringTokenizer(columnName, "{}=, ", false);
+      /*
+       * 例如：column = "{userName=name,userAge=age}"
+       * 解析到 property:userName column:name
+       * property:userAge column:age
+       * 这样多个属性和列名进行了映射关系
+       */
 			while (parser.hasMoreTokens()) {
 				String property = parser.nextToken();
 				String column = parser.nextToken();

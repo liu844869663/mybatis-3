@@ -23,19 +23,49 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * SQL 语句中 ? 占位符对应的对象
+ *
  * @author Clinton Begin
  */
 public class ParameterMapping {
 
+  /**
+   * 全局配置对象
+   */
   private Configuration configuration;
-
+  /**
+   * 属性名称
+   */
   private String property;
+  /**
+   * 参数模式
+   */
   private ParameterMode mode;
+  /**
+   * 属性的 Java Type
+   * 一般可以直接通过入参对象知道，但是如果入参是 Map，需要显式指定，以确保使用正确的类型处理器
+   */
   private Class<?> javaType = Object.class;
+  /**
+   * 属性的 Jdbc Type
+   */
   private JdbcType jdbcType;
+  /**
+   * 对于数值类型，指定小数点后保留的位数
+   */
   private Integer numericScale;
+  /**
+   * 类型处理器
+   */
   private TypeHandler<?> typeHandler;
+  /**
+   * 如果 {@link mode} 为 OUT 或者 INOUT，且{@link jdbcType} 为 CURSOR（也就是 Oracle 的 REFCURSOR）
+   * 必须指定一个 resultMap 引用来将结果集 ResultMap 映射到参数的类型上
+   */
   private String resultMapId;
+  /**
+   * Jdbc Type 名称
+   */
   private String jdbcTypeName;
   private String expression;
 

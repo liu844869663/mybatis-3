@@ -21,13 +21,19 @@ import java.util.List;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * <set />节点
+ *
  * @author Clinton Begin
  */
 public class SetSqlNode extends TrimSqlNode {
 
+  /**
+   * 也是通过 TrimSqlNode ，这里定义需要删除的前缀
+   */
   private static final List<String> COMMA = Collections.singletonList(",");
 
   public SetSqlNode(Configuration configuration,SqlNode contents) {
+    // 设置前缀、需要删除的前缀和后缀
     super(configuration, contents, "SET", COMMA, null, COMMA);
   }
 

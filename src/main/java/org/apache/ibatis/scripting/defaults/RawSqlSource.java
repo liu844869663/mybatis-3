@@ -26,8 +26,7 @@ import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
 
 /**
- * Static SqlSource. It is faster than {@link DynamicSqlSource} because mappings are
- * calculated during startup.
+ * Static SqlSource. It is faster than {@link DynamicSqlSource} because mappings are calculated during startup.
  *
  * @since 3.2.0
  * @author Eduardo Macarron
@@ -37,17 +36,23 @@ public class RawSqlSource implements SqlSource {
   private final SqlSource sqlSource;
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
+    /*
+     * 因为静态的 SQL 语句可以直接拿来解析，不需要根据入参就可以应用
+     * 所以调用 getSql 方法获取静态的 SQL 语句
+     */
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
   public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
+    // 通过 SqlSourceBuilder 将这个静态的 SQL 进行转换，变量替换成 ? 占位符，并生成对应的 ParameterMapping 集合
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     DynamicContext context = new DynamicContext(configuration, null);
+    // 调用 StaticTextSqlNode 将 SQL 语句拼接起来
     rootSqlNode.apply(context);
     return context.getSql();
   }

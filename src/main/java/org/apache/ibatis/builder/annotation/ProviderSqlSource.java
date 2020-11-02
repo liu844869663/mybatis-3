@@ -35,14 +35,41 @@ import org.apache.ibatis.session.Configuration;
  */
 public class ProviderSqlSource implements SqlSource {
 
+  /**
+   * 全局配置对象
+   */
   private final Configuration configuration;
+  /**
+   * `@XXXProvider` 注解的对应的类
+   */
   private final Class<?> providerType;
+  /**
+   * 语言驱动类
+   */
   private final LanguageDriver languageDriver;
+  /**
+   * Mapper 接口的方法
+   */
   private final Method mapperMethod;
+  /**
+   * `@XXXProvider` 注解的对应的方法
+   */
   private final Method providerMethod;
+  /**
+   * `@XXXProvider` 注解的对应的方法的参数名数组
+   */
   private final String[] providerMethodArgumentNames;
+  /**
+   * `@XXXProvider` 注解的对应的方法的参数类型数组
+   */
   private final Class<?>[] providerMethodParameterTypes;
+  /**
+   * 若 {@link #providerMethodParameterTypes} 参数有 ProviderContext 类型的，创建 ProviderContext 对象
+   */
   private final ProviderContext providerContext;
+  /**
+   * {@link #providerMethodParameterTypes} 参数中，ProviderContext 类型的参数，在数组中的位置
+   */
   private final Integer providerContextIndex;
 
   /**
@@ -73,9 +100,12 @@ public class ProviderSqlSource implements SqlSource {
     try {
       this.configuration = configuration;
       this.mapperMethod = mapperMethod;
+      // 获取该方法上面的 @Lang 注解，解析语言驱动类，
       Lang lang = mapperMethod == null ? null : mapperMethod.getAnnotation(Lang.class);
       this.languageDriver = configuration.getLanguageDriver(lang == null ? null : lang.value());
+      // 获取 @XXXProvider 注解对应的类
       this.providerType = getProviderType(provider, mapperMethod);
+      // 获取 @XXXProvider 注解对应的方法名称
       candidateProviderMethodName = (String) provider.annotationType().getMethod("method").invoke(provider);
 
       if (candidateProviderMethodName.length() == 0 && ProviderMethodResolver.class.isAssignableFrom(this.providerType)) {
@@ -104,8 +134,11 @@ public class ProviderSqlSource implements SqlSource {
       throw new BuilderException("Error creating SqlSource for SqlProvider. Method '"
           + candidateProviderMethodName + "' not found in SqlProvider '" + this.providerType.getName() + "'.");
     }
+    // @XXXProvider 注解对应的方法
     this.providerMethod = candidateProviderMethod;
+    // @XXXProvider 注解对应的方法的参数名称
     this.providerMethodArgumentNames = new ParamNameResolver(configuration, this.providerMethod).getNames();
+    // @XXXProvider 注解对应的方法的参数类型
     this.providerMethodParameterTypes = this.providerMethod.getParameterTypes();
 
     ProviderContext candidateProviderContext = null;
@@ -134,6 +167,7 @@ public class ProviderSqlSource implements SqlSource {
 
   private SqlSource createSqlSource(Object parameterObject) {
     try {
+      // <1> 获得 SQL
       String sql;
       if (parameterObject instanceof Map) {
         int bindParameterCount = providerMethodParameterTypes.length - (providerContext == null ? 0 : 1);
@@ -160,7 +194,9 @@ public class ProviderSqlSource implements SqlSource {
           + "' with specify parameter '" + (parameterObject == null ? null : parameterObject.getClass())
           + "' because SqlProvider method arguments for '" + mapperMethod + "' is an invalid combination.");
       }
+      // <2> 获得参数类型
       Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+      // <3> 创建 SqlSource 对象
       return languageDriver.createSqlSource(configuration, sql, parameterType);
     } catch (BuilderException e) {
       throw e;

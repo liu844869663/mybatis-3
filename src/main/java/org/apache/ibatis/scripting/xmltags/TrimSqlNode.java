@@ -25,36 +25,39 @@ import java.util.StringTokenizer;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * <trim />节点
+ *
  * @author Clinton Begin
  */
 public class TrimSqlNode implements SqlNode {
 
 	/**
-	 * 内含的 SqlNode 节点
+	 * MixedSqlNode，包含该<if />节点内所有信息
 	 */
 	private final SqlNode contents;
 	/**
-	 * 前缀
+	 * 前缀，行首添加
 	 */
 	private final String prefix;
 	/**
-	 * 后缀
+	 * 后缀，行尾添加
 	 */
 	private final String suffix;
 	/**
-	 * 需要被删除的前缀
+	 * 需要删除的前缀，例如这样定义：'AND|OR'
+   * 注意空格，这里是不会去除的
 	 */
 	private final List<String> prefixesToOverride;
 	/**
-	 * 需要被删除的后缀
+	 * 需要删除的后缀，例如我们这样定义：',|AND'
+   * 注意空格，这里是不会去除的
 	 */
 	private final List<String> suffixesToOverride;
 	private final Configuration configuration;
 
 	public TrimSqlNode(Configuration configuration, SqlNode contents, String prefix, String prefixesToOverride,
 			String suffix, String suffixesToOverride) {
-		this(configuration, contents, prefix, parseOverrides(prefixesToOverride), suffix,
-				parseOverrides(suffixesToOverride));
+		this(configuration, contents, prefix, parseOverrides(prefixesToOverride), suffix, parseOverrides(suffixesToOverride));
 	}
 
 	protected TrimSqlNode(Configuration configuration, SqlNode contents, String prefix, List<String> prefixesToOverride,
@@ -71,9 +74,13 @@ public class TrimSqlNode implements SqlNode {
 	public boolean apply(DynamicContext context) {
 		// <1> 创建 FilteredDynamicContext 对象
 		FilteredDynamicContext filteredDynamicContext = new FilteredDynamicContext(context);
-		// <2> 执行 contents 的应用
+		// <2> 先解析 <trim /> 节点中的内容，将生成的 SQL 先存放在 FilteredDynamicContext 中
 		boolean result = contents.apply(filteredDynamicContext);
-		// <3> 执行 FilteredDynamicContext 的应用
+		/*
+		 * <3> 执行 FilteredDynamicContext 的应用
+		 * 对上一步解析到的内容进行处理
+		 * 处理完成后再将处理后的 SQL 拼接到 DynamicContext 中
+		 */
 		filteredDynamicContext.applyAll();
 		return result;
 	}
@@ -92,7 +99,7 @@ public class TrimSqlNode implements SqlNode {
 
 	private class FilteredDynamicContext extends DynamicContext {
 		/**
-		 * 委托的 DynamicContext 对象
+		 * 装饰的 DynamicContext 对象
 		 */
 		private DynamicContext delegate;
 		/**
@@ -119,9 +126,9 @@ public class TrimSqlNode implements SqlNode {
 		}
 
 		public void applyAll() {
-			// <1> trim 掉多余的空格，生成新的 sqlBuffer 对象
+			// <1> 去除前后多余的空格，生成新的 sqlBuffer 对象
 			sqlBuffer = new StringBuilder(sqlBuffer.toString().trim());
-			// <2> 将 sqlBuffer 大写，生成新的 trimmedUppercaseSql 对象
+			// <2> 全部大写
 			String trimmedUppercaseSql = sqlBuffer.toString().toUpperCase(Locale.ENGLISH);
 			// <3> 应用 TrimSqlNode 的 trim 逻辑
 			if (trimmedUppercaseSql.length() > 0) {

@@ -16,11 +16,22 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * <if />节点
+ *
  * @author Clinton Begin
  */
 public class IfSqlNode implements SqlNode {
+  /**
+   * 表达式计算器
+   */
 	private final ExpressionEvaluator evaluator;
+  /**
+   * 判断条件的表达式
+   */
 	private final String test;
+  /**
+   * MixedSqlNode，包含该<if />节点内所有信息
+   */
 	private final SqlNode contents;
 
 	public IfSqlNode(SqlNode contents, String test) {
@@ -33,12 +44,11 @@ public class IfSqlNode implements SqlNode {
 	public boolean apply(DynamicContext context) {
 		// <1> 判断是否符合条件
 		if (evaluator.evaluateBoolean(test, context.getBindings())) {
-			// <2> 符合，执行 contents 的应用
+			// <2> 解析该<if />节点中的内容
 			contents.apply(context);
-			// 返回成功
 			return true;
 		}
-		// <3> 不符合，返回失败
+		// <3> 不符合
 		return false;
 	}
 
