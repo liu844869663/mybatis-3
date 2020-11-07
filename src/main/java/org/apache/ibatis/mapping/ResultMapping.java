@@ -48,12 +48,13 @@ public class ResultMapping {
    */
 	private JdbcType jdbcType;
   /**
-   * 类型处理器
+   * 类型处理器，如果为空则会根据 Java Type 从注册表中获取
    */
 	private TypeHandler<?> typeHandler;
   /**
    * 对应的 resultMapId
-   * 例如 <resultMap /> 标签中的 <association/> 标签会生成一个 ResultMap 对象，则这个属性对应该 ResultMap 对象的Id
+   * 例如 <resultMap /> 标签中的 <association /> 标签会生成一个 ResultMap 对象，则这个属性对应该 ResultMap 对象的 id
+   * 或者 <resultMap /> 标签中的 <collection /> 标签
    */
 	private String nestedResultMapId;
   /**
@@ -73,11 +74,18 @@ public class ResultMapping {
    */
 	private List<ResultFlag> flags;
   /**
-   * 关联嵌套查询的属性映射
+   * 嵌套查询的属性映射
+   * 例如配置的返回结果的多个 column 映射到嵌套查询入参的多个 property，则会生成对应的 composites 对象
    */
 	private List<ResultMapping> composites;
 	private String resultSet;
+  /**
+   * 外键列名
+   */
 	private String foreignColumn;
+  /**
+   * 是否延迟加载
+   */
 	private boolean lazy;
 
 	ResultMapping() {

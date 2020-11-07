@@ -497,6 +497,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 			  // 校验这个 ResultMap 对应的 Java Type 是否包含该属性，<collection /> 标签中定义的 property
 				validateCollection(context, enclosingType);
 				// 将 <association /> 标签转换成 ResultMap 对象
+        // 或者 <discriminator /> 下的 <case /> 标签
 				ResultMap resultMap = resultMapElement(context, resultMappings, enclosingType);
 				return resultMap.getId();
 			}

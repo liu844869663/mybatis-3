@@ -26,7 +26,13 @@ import org.apache.ibatis.session.Configuration;
  * @author Andrew Gustafson
  */
 public class ResultExtractor {
+  /**
+   * 全局配置对象
+   */
 	private final Configuration configuration;
+  /**
+   * 实例工厂
+   */
 	private final ObjectFactory objectFactory;
 
 	public ResultExtractor(Configuration configuration, ObjectFactory objectFactory) {
@@ -43,33 +49,39 @@ public class ResultExtractor {
      */
 	public Object extractObjectFromList(List<Object> list, Class<?> targetType) {
 		Object value = null;
-		// 情况一，targetType 就是 list ，直接返回
-		if (targetType != null && targetType.isAssignableFrom(list.getClass())) {
+		/*
+		 * 从查询结果中抽取数据转换成目标类型
+		 */
+		if (targetType != null && targetType.isAssignableFrom(list.getClass())) { // <1> 场景1，List 类型
+		  // 直接返回
 			value = list;
-		} else if (targetType != null && objectFactory.isCollection(targetType)) { // 情况二，targetType 是集合，添加到其中
-			// 创建 Collection 对象
+		} else if (targetType != null && objectFactory.isCollection(targetType)) { // <2> 场景2，集合类型
+			// <2.1> 创建集合的实例对象
 			value = objectFactory.create(targetType);
-			// 将结果添加到其中
+			// <2.2> 将结果添加到其中
 			MetaObject metaObject = configuration.newMetaObject(value);
+			// <2.3> 将查询结果全部添加到集合对象中
 			metaObject.addAll(list);
-		} else if (targetType != null && targetType.isArray()) { // 情况三，targetType 是数组
-			// 创建 array 数组
+		} else if (targetType != null && targetType.isArray()) { // <3> 场景3，数组类型
+			// <3.1> 获取数组的成员类型
 			Class<?> arrayComponentType = targetType.getComponentType();
-			// 赋值到 array 中
+			// <3.2> 创建数组对象，并设置大小
 			Object array = Array.newInstance(arrayComponentType, list.size());
-			if (arrayComponentType.isPrimitive()) {
+			if (arrayComponentType.isPrimitive()) { // <3.3> 如果是基本类型
 				for (int i = 0; i < list.size(); i++) {
+				  // 一个一个添加到数组中
 					Array.set(array, i, list.get(i));
 				}
 				value = array;
 			} else {
+			  // <3.4> 将 List 转换成 Array
 				value = list.toArray((Object[]) array);
 			}
-		} else { // 情况四，普通对象，取首个对象
+		} else { // <4> 场景4
 			if (list != null && list.size() > 1) {
-				throw new ExecutorException(
-						"Statement returned more than one row, where no more than one was expected.");
+				throw new ExecutorException("Statement returned more than one row, where no more than one was expected.");
 			} else if (list != null && list.size() == 1) {
+			  // 取首个结果
 				value = list.get(0);
 			}
 		}

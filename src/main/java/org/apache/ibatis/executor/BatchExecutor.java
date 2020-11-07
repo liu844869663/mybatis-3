@@ -49,15 +49,15 @@ public class BatchExecutor extends BaseExecutor {
 	/**
 	 * BatchResult 数组
 	 *
-	 * 每一个 BatchResult 元素，对应一个 {@link #statementList} 的 Statement 元素
+	 * 每一个 BatchResult 元素，对应 {@link #statementList} 集合中的一个 Statement 元素
 	 */
 	private final List<BatchResult> batchResultList = new ArrayList<>();
 	/**
-	 * 当前 SQL
+	 * 上一次添加至批处理的 Statement 对象对应的SQL
 	 */
 	private String currentSql;
 	/**
-	 * 当前 MappedStatement 对象
+	 * 上一次添加至批处理的 Statement 对象对应的 MappedStatement 对象
 	 */
 	private MappedStatement currentStatement;
 
@@ -73,35 +73,34 @@ public class BatchExecutor extends BaseExecutor {
 		final BoundSql boundSql = handler.getBoundSql();
 		final String sql = boundSql.getSql();
 		final Statement stmt;
-		// <2> 如果匹配最后一次 currentSql 和 currentStatement ，则聚合到 BatchResult 中
+		// <2> 如果和上一次添加至批处理 Statement 对象对应的 currentSql 和 currentStatement 都一致，则聚合到 BatchResult 中
 		if (sql.equals(currentSql) && ms.equals(currentStatement)) {
-			// <2.1> 获得最后一次的 Statement 对象
+			// <2.1> 获取上一次添加至批处理 Statement 对象
 			int last = statementList.size() - 1;
 			stmt = statementList.get(last);
-			// <2.2> 设置事务超时时间
+			// <2.2> 重新设置事务超时时间
 			applyTransactionTimeout(stmt);
-			// <2.3> 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
+			// <2.3> 往 Statement 中设置 SQL 语句上的参数，例如 PrepareStatement 的 ? 占位符
 			handler.parameterize(stmt);// fix Issues 322
-			// <2.4> 获得最后一次的 BatchResult 对象，并添加参数到其中
+			// <2.4> 获取上一次添加至批处理 Statement 对应的 BatchResult 对象，将本次的入参添加到其中
 			BatchResult batchResult = batchResultList.get(last);
 			batchResult.addParameterObject(parameterObject);
-		} else { // <3> 如果不匹配最后一次 currentSql 和 currentStatement ，则新建 BatchResult 对象
-			// <3.1> 获得 Connection
+		} else { // <3> 否则，创建 Statement 和 BatchResult 对象
+		  // <3.1> 初始化 Statement 对象
 			Connection connection = getConnection(ms.getStatementLog());
-			// <3.2> 创建 Statement 或 PrepareStatement 对象
 			stmt = handler.prepare(connection, transaction.getTimeout());
-			// <3.3> 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
 			handler.parameterize(stmt); // fix Issues 322
-			// <3.4> 重新设置 currentSql 和 currentStatemen
+			// <3.2> 设置 currentSql 和 currentStatemen
 			currentSql = sql;
 			currentStatement = ms;
-			// <3.5> 添加 Statement 到 statementList 中
+			// <3.3> 添加 Statement 到 statementList 中
 			statementList.add(stmt);
-			// <3.6> 创建 BatchResult 对象，并添加到 batchResultList 中
+			// <3.4> 创建 BatchResult 对象，并添加到 batchResultList 中
 			batchResultList.add(new BatchResult(ms, sql, parameterObject));
 		}
-		// <4> 批处理
+		// <4> 添加至批处理
 		handler.batch(stmt);
+		// <5> 返回 Integer.MIN_VALUE + 1002
 		return BATCH_UPDATE_RETURN_VALUE;
 	}
 
@@ -157,17 +156,24 @@ public class BatchExecutor extends BaseExecutor {
 				applyTransactionTimeout(stmt);
 				BatchResult batchResult = batchResultList.get(i);
 				try {
-					// <2.2> 批量执行
+					// <2.2> 提交该 Statement 的批处理
 					batchResult.setUpdateCounts(stmt.executeBatch());
-					// <2.3> 处理主键生成
 					MappedStatement ms = batchResult.getMappedStatement();
 					List<Object> parameterObjects = batchResult.getParameterObjects();
+          /*
+           * <2.3> 获得 KeyGenerator 对象
+           * 1. 配置了 <selectKey /> 则会生成 SelectKeyGenerator 对象
+           * 2. 配置了 useGeneratedKeys="true" 则会生成 Jdbc3KeyGenerator 对象
+           * 否则为 NoKeyGenerator 对象
+           */
 					KeyGenerator keyGenerator = ms.getKeyGenerator();
 					if (Jdbc3KeyGenerator.class.equals(keyGenerator.getClass())) {
 						Jdbc3KeyGenerator jdbc3KeyGenerator = (Jdbc3KeyGenerator) keyGenerator;
+						// <2.3.1> 批处理入参对象集合，设置自增键
 						jdbc3KeyGenerator.processBatch(ms, stmt, parameterObjects);
 					} else if (!NoKeyGenerator.class.equals(keyGenerator.getClass())) { // issue #141
 						for (Object parameter : parameterObjects) {
+						  // <2.3.1> 一次处理每个入参对象，设置自增键
 							keyGenerator.processAfter(this, ms, stmt, parameter);
 						}
 					}

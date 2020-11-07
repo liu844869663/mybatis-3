@@ -17,13 +17,22 @@ package org.apache.ibatis.executor;
 
 /**
  * @author Clinton Begin
- * @description 错误上下文，负责记录错误日志。
+ * @description 错误上下文，负责记录错误日志
  */
 public class ErrorContext {
 
+  /**
+   * 获取换行分隔符
+   */
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator", "\n");
+  /**
+   * 线程变量
+   */
 	private static final ThreadLocal<ErrorContext> LOCAL = new ThreadLocal<>();
 
+  /**
+   * 保存
+   */
 	private ErrorContext stored;
 	private String resource;
 	private String activity;
@@ -35,6 +44,9 @@ public class ErrorContext {
 	private ErrorContext() {
 	}
 
+  /**
+   * 获取一个上下文实例
+   */
 	public static ErrorContext instance() {
 		ErrorContext context = LOCAL.get();
 		if (context == null) {
@@ -44,6 +56,9 @@ public class ErrorContext {
 		return context;
 	}
 
+  /**
+   * 线程切换时，生成一个新的上下文，该上下文中保存了原有上下文信息
+   */
 	public ErrorContext store() {
 		ErrorContext newContext = new ErrorContext();
 		newContext.stored = this;
@@ -51,6 +66,9 @@ public class ErrorContext {
 		return LOCAL.get();
 	}
 
+  /**
+   * 获取线程切换前的上下文
+   */
 	public ErrorContext recall() {
 		if (stored != null) {
 			LOCAL.set(stored);

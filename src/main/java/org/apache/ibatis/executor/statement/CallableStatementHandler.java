@@ -48,11 +48,17 @@ public class CallableStatementHandler extends BaseStatementHandler {
 	@Override
 	public int update(Statement statement) throws SQLException {
 		CallableStatement cs = (CallableStatement) statement;
+		// 执行更新操作
 		cs.execute();
+		// 获取受影响行数
 		int rows = cs.getUpdateCount();
+		// 获取入参
 		Object parameterObject = boundSql.getParameterObject();
+		// 获取 KeyGenerator 对象
 		KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
+		// 后置处理
 		keyGenerator.processAfter(executor, mappedStatement, cs, parameterObject);
+		// 处理出参
 		resultSetHandler.handleOutputParameters(cs);
 		return rows;
 	}

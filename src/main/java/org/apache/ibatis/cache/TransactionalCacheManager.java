@@ -40,7 +40,7 @@ public class TransactionalCacheManager {
 
 	public void putObject(Cache cache, CacheKey key, Object value) {
 		// 首先，获得 Cache 对应的 TransactionalCache 对象
-	    // 然后，添加 KV 到 TransactionalCache 对象中
+    // 然后，添加 KV 到 TransactionalCache 对象中
 		getTransactionalCache(cache).putObject(key, value);
 	}
 

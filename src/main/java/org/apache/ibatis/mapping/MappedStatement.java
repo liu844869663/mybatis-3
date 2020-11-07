@@ -83,7 +83,7 @@ public final class MappedStatement {
    */
 	private boolean flushCacheRequired;
   /**
-   * 是否使用缓存
+   * 是否使用缓存，默认开启
    */
 	private boolean useCache;
   /**
@@ -375,8 +375,7 @@ public final class MappedStatement {
 		// http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html 文档
 		List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
 		if (parameterMappings == null || parameterMappings.isEmpty()) {
-			boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(),
-					parameterObject);
+			boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(), parameterObject);
 		}
 
 		// check for nested result maps in parameter mappings (issue #30)

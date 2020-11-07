@@ -39,29 +39,43 @@ import org.apache.ibatis.transaction.TransactionFactory;
  */
 public class ResultLoader {
 
+  /**
+   * 全局配置对象
+   */
 	protected final Configuration configuration;
+  /**
+   * 执行器
+   */
 	protected final Executor executor;
+  /**
+   * MappedStatement 查询对象
+   */
 	protected final MappedStatement mappedStatement;
 	/**
 	 * 查询的参数对象
 	 */
 	protected final Object parameterObject;
 	/**
-	 * 结果的类型
+	 * 目标的类型，返回结果的 Java Type
 	 */
 	protected final Class<?> targetType;
+  /**
+   * 实例工厂
+   */
 	protected final ObjectFactory objectFactory;
 	protected final CacheKey cacheKey;
+  /**
+   * SQL 相关信息
+   */
 	protected final BoundSql boundSql;
 	/**
-	 * ResultExtractor 对象
+	 * 结果抽取器
 	 */
 	protected final ResultExtractor resultExtractor;
 	/**
-	 * 创建 ResultLoader 对象时，所在的线程
+	 * 创建 ResultLoader 对象时，所在的线程的 id
 	 */
 	protected final long creatorThreadId;
-
 	/**
 	 * 是否已经加载
 	 */
@@ -81,9 +95,7 @@ public class ResultLoader {
 		this.objectFactory = configuration.getObjectFactory();
 		this.cacheKey = cacheKey;
 		this.boundSql = boundSql;
-		// 初始化 resultExtractor
 		this.resultExtractor = new ResultExtractor(configuration, objectFactory);
-		// 初始化 creatorThreadId
 		this.creatorThreadId = Thread.currentThread().getId();
 	}
 
@@ -100,12 +112,12 @@ public class ResultLoader {
 		// <1> 获得 Executor 对象
 		Executor localExecutor = executor;
 		if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
+      // 创建一个的 Executor 对象，保证线程安全
 			localExecutor = newExecutor();
 		}
 		try {
 			// <2> 执行查询
-			return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
-					cacheKey, boundSql);
+			return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, cacheKey, boundSql);
 		} finally {
 			// <3> 关闭 Executor 对象
 			if (localExecutor != executor) {
@@ -114,11 +126,11 @@ public class ResultLoader {
 		}
 	}
 
-	/**
-	 * 如果当前线程不是创建线程，则调用 #newExecutor() 方法，创建 Executor 对象，因为 Executor 是非线程安全的
-	 * 
-	 * @return Executor
-	 */
+  /**
+   * 创建一个新的执行器
+   *
+   * @return Executor 对象
+   */
 	private Executor newExecutor() {
 		// 校验 environment
 		final Environment environment = configuration.getEnvironment();

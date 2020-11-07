@@ -46,21 +46,27 @@ public class SimpleStatementHandler extends BaseStatementHandler {
 	public int update(Statement statement) throws SQLException {
 		String sql = boundSql.getSql();
 		Object parameterObject = boundSql.getParameterObject();
+    /*
+     * 获得 KeyGenerator 对象
+     * 1. 配置了 <selectKey /> 则会生成 SelectKeyGenerator 对象
+     * 2. 配置了 useGeneratedKeys="true" 则会生成 Jdbc3KeyGenerator 对象
+     * 否则为 NoKeyGenerator 对象
+     */
 		KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
 		int rows;
 		if (keyGenerator instanceof Jdbc3KeyGenerator) { // 如果是 Jdbc3KeyGenerator 类型
-			// <1.1> 执行写操作
+			// <1.1> 执行写操作，设置返回自增键，可通过 getGeneratedKeys() 方法获取
 			statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
 			// <1.2> 获得更新数量
 			rows = statement.getUpdateCount();
-			// <1.3> 执行 keyGenerator 的后置处理逻辑
+			// <1.3> 执行 keyGenerator 的后置处理逻辑，也就是对我们配置的自增键进行赋值
 			keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
 		} else if (keyGenerator instanceof SelectKeyGenerator) { // 如果是 SelectKeyGenerator 类型
 			// <2.1> 执行写操作
 			statement.execute(sql);
 			// <2.2> 获得更新数量
 			rows = statement.getUpdateCount();
-			// <2.3> 执行 keyGenerator 的后置处理逻辑
+			// <2.3>执行 keyGenerator 的后置处理逻辑，也就是对我们配置的自增键进行赋值
 			keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
 		} else {
 			// <3.1> 执行写操作

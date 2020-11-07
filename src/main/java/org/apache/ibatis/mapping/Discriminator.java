@@ -25,7 +25,15 @@ import org.apache.ibatis.session.Configuration;
  */
 public class Discriminator {
 
+  /**
+   * <discriminator />标签对应的的 ResultMapping 对象
+   */
   private ResultMapping resultMapping;
+  /**
+   * <discriminator />标签下的<case />标签集合
+   * key：<case />中的 value 属性
+   * value：<case />对应的 resultMap 的 id
+   */
   private Map<String, String> discriminatorMap;
 
   Discriminator() {

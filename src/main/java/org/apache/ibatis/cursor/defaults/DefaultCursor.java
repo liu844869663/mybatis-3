@@ -43,10 +43,24 @@ public class DefaultCursor<T> implements Cursor<T> {
   private final RowBounds rowBounds;
   protected final ObjectWrapperResultHandler<T> objectWrapperResultHandler = new ObjectWrapperResultHandler<>();
 
+  /**
+   * CursorIterator 对象，游标迭代器。
+   */
   private final CursorIterator cursorIterator = new CursorIterator();
+  /**
+   * 是否开始迭代
+   *
+   * {@link #iterator()}
+   */
   private boolean iteratorRetrieved;
 
+  /**
+   * 游标状态
+   */
   private CursorStatus status = CursorStatus.CREATED;
+  /**
+   * 已完成映射的行数
+   */
   private int indexWithRowBound = -1;
 
   private enum CursorStatus {

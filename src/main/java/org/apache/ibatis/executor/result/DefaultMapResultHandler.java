@@ -29,9 +29,6 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
-	/**
-     * 结果，基于 Map 聚合
-     */
 	private final Map<K, V> mappedResults;
 	private final String mapKey;
 	private final ObjectFactory objectFactory;

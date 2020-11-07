@@ -25,8 +25,24 @@ import org.apache.ibatis.mapping.MappedStatement;
  */
 public interface KeyGenerator {
 
-  void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
-
+  /**
+   * 在 SQL 执行后设置自增键到入参中
+   *
+   * @param executor  执行器
+   * @param ms        MappedStatement 对象
+   * @param stmt      Statement对象
+   * @param parameter 入参对象
+   */
   void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
+
+  /**
+   * 在 SQL 执行前设置自增键到入参中
+   *
+   * @param executor  执行器
+   * @param ms        MappedStatement 对象
+   * @param stmt      Statement对象
+   * @param parameter 入参对象
+   */
+  void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
 
 }

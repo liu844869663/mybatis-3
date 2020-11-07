@@ -49,7 +49,7 @@ public class CachingExecutor implements Executor {
 
 	public CachingExecutor(Executor delegate) {
 		this.delegate = delegate;
-		// <2> 设置 delegate 被当前执行器所包装
+		// 设置 delegate 被当前执行器所包装
 		delegate.setExecutorWrapper(this);
 	}
 
@@ -79,7 +79,9 @@ public class CachingExecutor implements Executor {
 
 	@Override
 	public int update(MappedStatement ms, Object parameterObject) throws SQLException {
+    // 如果需要清空缓存，则进行清空
 		flushCacheIfRequired(ms);
+    // 执行 delegate 对应的方法
 		return delegate.update(ms, parameterObject);
 	}
 
@@ -100,26 +102,30 @@ public class CachingExecutor implements Executor {
 	@Override
 	public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds,
 			ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
+	  // <1> 获取 Cache 二级缓存对象
 		Cache cache = ms.getCache();
+		// <2> 如果配置了二级缓存
 		if (cache != null) {
 			// <2.1> 如果需要清空缓存，则进行清空
 			flushCacheIfRequired(ms);
-			if (ms.isUseCache() && resultHandler == null) { // <2.2>
-				// 存储过程相关
+			// <2.2> 如果当前操作需要使用缓存（默认开启）
+			if (ms.isUseCache() && resultHandler == null) {
+				// <2.2.1> 如果是存储过程相关操作，保证所有的参数模式为 ParameterMode.IN
 				ensureNoOutParams(ms, boundSql);
 				@SuppressWarnings("unchecked")
-				// <2.3> 从二级缓存中，获取结果
+        // <2.2.2> 从二级缓存中获取结果，会装饰成 TransactionalCache
 				List<E> list = (List<E>) tcm.getObject(cache, key);
 				if (list == null) {
-					// <2.4.1> 如果不存在，则从数据库中查询
+					// <2.2.3> 如果不存在，则从数据库中查询
 					list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
-					// <2.4.2> 缓存结果到二级缓存中
+					// <2.2.4> 将缓存结果保存至 TransactionalCache
 					tcm.putObject(cache, key, list); // issue #578 and #116
 				}
+        // <2.2.5> 直接返回结果
 				return list;
 			}
 		}
-		// <3> 不使用缓存，则从数据库中查询
+		// <3> 没有使用二级缓存，则调用委托对象的方法
 		return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
 	}
 
@@ -130,16 +136,20 @@ public class CachingExecutor implements Executor {
 
 	@Override
 	public void commit(boolean required) throws SQLException {
+    // 执行 delegate 对应的方法
 		delegate.commit(required);
+    // 提交 TransactionalCacheManager
 		tcm.commit();
 	}
 
 	@Override
 	public void rollback(boolean required) throws SQLException {
 		try {
+      // 执行 delegate 对应的方法
 			delegate.rollback(required);
 		} finally {
 			if (required) {
+        // 回滚 TransactionalCacheManager
 				tcm.rollback();
 			}
 		}

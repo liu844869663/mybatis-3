@@ -41,11 +41,12 @@ public class ResultMap {
 	private Configuration configuration;
 
 	/**
-	 * ResultMap 对象
+	 * ResultMap 对象的 id
+   * 配置的 resultType 也会转换成 ResultMap 对象，其 id 就是 statementId + '-Inline'
 	 */
 	private String id;
 	/**
-	 * 类型
+	 * Java 类型
 	 */
 	private Class<?> type;
 	/**
@@ -70,7 +71,7 @@ public class ResultMap {
 	 */
 	private List<ResultMapping> propertyResultMappings;
 	/**
-	 * 数据库的字段集合（全部大写）
+	 * 配置的数据库的字段集合（全部大写）
 	 */
 	private Set<String> mappedColumns;
 	/**
@@ -90,10 +91,8 @@ public class ResultMap {
 	 */
 	private boolean hasNestedQueries;
 	/**
-	 * 是否开启自动匹配
-	 *
-	 * 如果设置这个属性，MyBatis将会为这个ResultMap开启或者关闭自动映射。这个属性会覆盖全局的属性
-	 * autoMappingBehavior。默认值为：unset。
+	 * 是否自定映射，默认为 null
+	 * 全局 autoMappingBehavior 配置默认为 PARTIAL，只会自动映射没有定义嵌套结果映射的字段
 	 */
 	private Boolean autoMapping;
 

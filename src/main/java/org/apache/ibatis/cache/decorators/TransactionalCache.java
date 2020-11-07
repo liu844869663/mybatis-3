@@ -51,10 +51,14 @@ public class TransactionalCache implements Cache {
 	 *
 	 * 初始时，该值为 false
 	 * 清理后{@link #clear()} 时，该值为 true ，表示持续处于清空状态
+   *
+   * 因为可能事务还未提交，所以不能直接清空所有的缓存，而是设置一个标记，获取缓存的时候返回 null 即可
+   * 先清空下面这个待提交变量，待事务提交的时候才真正的清空缓存
+   *
 	 */
 	private boolean clearOnCommit;
 	/**
-	 * 待提交的 KV 映射
+	 * 待提交的 Key-Value 映射
 	 */
 	private final Map<Object, Object> entriesToAddOnCommit;
 	/**
@@ -108,7 +112,9 @@ public class TransactionalCache implements Cache {
 
 	@Override
 	public void clear() {
+    // <1> 标记 clearOnCommit 为 true
 		clearOnCommit = true;
+    // <2> 清空 entriesToAddOnCommit
 		entriesToAddOnCommit.clear();
 	}
 

@@ -111,11 +111,11 @@ public class Configuration {
    */
 	protected boolean safeResultHandlerEnabled = true;
   /**
-   * 是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn。
+   * 是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn
    */
 	protected boolean mapUnderscoreToCamelCase;
   /**
-   * 开启时，任一方法的调用都会加载该对象的所有延迟加载属性。 否则，每个延迟加载属性会按需加载
+   * 开启时，任一方法的调用都会加载该对象的所有延迟加载属性，否则，每个延迟加载属性会按需加载，默认false
    */
 	protected boolean aggressiveLazyLoading;
   /**
@@ -146,8 +146,8 @@ public class Configuration {
    */
 	protected boolean useActualParamName = true;
   /**
-   * 当返回行的所有列都是空时，MyBatis默认返回 null
-   * 当开启这个设置时，MyBatis会返回一个空实例
+   * 当返回行的所有列都是空时，MyBatis 默认返回 null
+   * 当开启这个设置时，MyBatis 会返回一个空实例
    * 请注意，它也适用于嵌套的结果集（如集合或关联）（新增于 3.4.2）
    */
 	protected boolean returnInstanceForEmptyRow;
@@ -157,7 +157,8 @@ public class Configuration {
    */
 	protected String logPrefix;
   /**
-   * 指定 MyBatis 所用日志的具体实现，未指定时将自动查找。
+   * 指定 MyBatis 所用日志的具体实现，未指定时将自动查找
+   * SLF4J | LOG4J | LOG4J2 | JDK_LOGGING | COMMONS_LOGGING | STDOUT_LOGGING | NO_LOGGING
    */
 	protected Class<? extends Log> logImpl;
   /**
@@ -167,7 +168,7 @@ public class Configuration {
   /**
    * MyBatis 利用本地缓存机制（Local Cache）防止循环引用和加速重复的嵌套查询
    * 默认值为 SESSION，会缓存一个会话中执行的所有查询
-   * 若设置值为 STATEMENT，本地缓存将仅用于执行语句，对相同 SqlSession 的不同查询将不会进行缓存。
+   * 若设置值为 STATEMENT，本地缓存将仅用于执行语句，对相同 SqlSession 的不同查询将不会进行缓存
    */
 	protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
   /**
@@ -742,16 +743,23 @@ public class Configuration {
 
 	public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds,
 			ParameterHandler parameterHandler, ResultHandler resultHandler, BoundSql boundSql) {
+    // 创建 DefaultResultSetHandler 对象
 		ResultSetHandler resultSetHandler = new DefaultResultSetHandler(executor, mappedStatement, parameterHandler,
-				resultHandler, boundSql, rowBounds);
+      resultHandler, boundSql, rowBounds);
+    // 应用插件
 		resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);
 		return resultSetHandler;
 	}
 
 	public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement,
 			Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
-		StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject,
-				rowBounds, resultHandler, boundSql);
+	  /*
+	   * 创建 RoutingStatementHandler 路由对象
+	   * 其中根据 StatementType 创建对应类型的 Statement 对象，默认为 PREPARED
+	   * 执行的方法都会路由到该对象
+	   */
+		StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
+		// 将 Configuration 全局配置中的所有插件应用在 StatementHandler 上面
 		statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
 		return statementHandler;
 	}

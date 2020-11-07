@@ -25,7 +25,13 @@ import org.apache.ibatis.session.Configuration;
  */
 public class ParameterMap {
 
+  /**
+   * 唯一编号，namespace + statementId + '-Inline'
+   */
   private String id;
+  /**
+   * 参数类型
+   */
   private Class<?> type;
   private List<ParameterMapping> parameterMappings;
 

@@ -53,8 +53,11 @@ public class ReuseExecutor extends BaseExecutor {
 	@Override
 	public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
 		Configuration configuration = ms.getConfiguration();
+    // 创建 StatementHandler 对象
 		StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
+    // 初始化 Statement 对象
 		Statement stmt = prepareStatement(handler, ms.getStatementLog());
+    // 通过 StatementHandler 执行写操作
 		return handler.update(stmt);
 	}
 
@@ -62,8 +65,11 @@ public class ReuseExecutor extends BaseExecutor {
 	public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler,
 			BoundSql boundSql) throws SQLException {
 		Configuration configuration = ms.getConfiguration();
+    // 创建 StatementHandler 对象
 		StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+    // 初始化 Statement 对象
 		Statement stmt = prepareStatement(handler, ms.getStatementLog());
+    // 通过 StatementHandler 执行写操作
 		return handler.query(stmt, resultHandler);
 	}
 
@@ -79,6 +85,7 @@ public class ReuseExecutor extends BaseExecutor {
 	@Override
 	public List<BatchResult> doFlushStatements(boolean isRollback) {
 		for (Statement stmt : statementMap.values()) {
+		  // 关闭 Statement 对象
 			closeStatement(stmt);
 		}
 		statementMap.clear();
@@ -89,28 +96,30 @@ public class ReuseExecutor extends BaseExecutor {
 		Statement stmt;
 		BoundSql boundSql = handler.getBoundSql();
 		String sql = boundSql.getSql();
-		// 存在
+    /*
+     * 根据需要执行的 SQL 语句判断 是否已有对应的 Statement 并且连接未关闭
+     */
 		if (hasStatementFor(sql)) {
-			// <1.1> 从缓存中获得 Statement 或 PrepareStatement 对象
+			// 从缓存中获得 Statement 对象
 			stmt = getStatement(sql);
-			// <1.2> 设置事务超时时间
+			// 重新设置事务超时时间
 			applyTransactionTimeout(stmt);
 		} else {
-			// <2.1> 获得 Connection 对象
+			// 获得 Connection 对象
 			Connection connection = getConnection(statementLog);
-			// <2.2> 创建 Statement 或 PrepareStatement 对象
+      // 初始化 Statement 对象
 			stmt = handler.prepare(connection, transaction.getTimeout());
-			// <2.3> 添加到缓存中
+			// 将 Statement 添加到缓存中，key 值为 当前执行的 SQL 语句
 			putStatement(sql, stmt);
 		}
-		// <2> 设置 SQL 上的参数，例如 PrepareStatement 对象上的占位符
+		// 往 Statement 中设置 SQL 语句上的参数，例如 PrepareStatement 的 ? 占位符
 		handler.parameterize(stmt);
 		return stmt;
 	}
 
 	private boolean hasStatementFor(String sql) {
 		try {
-			// 如果缓存中存在sql对应的Statement并且连接未关闭
+			// 如果缓存中存在该 SQL 对应的 Statement 并且连接未关闭
 			return statementMap.keySet().contains(sql) && !statementMap.get(sql).getConnection().isClosed();
 		} catch (SQLException e) {
 			return false;

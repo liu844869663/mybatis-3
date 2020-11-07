@@ -60,8 +60,8 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 	@Override
 	public Object createProxy(Object target, ResultLoaderMap lazyLoader, Configuration configuration,
 			ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
-		return EnhancedResultObjectProxyImpl.createProxy(target, lazyLoader, configuration, objectFactory,
-				constructorArgTypes, constructorArgs);
+	  // <1> 创建动态代实例对象
+		return EnhancedResultObjectProxyImpl.createProxy(target, lazyLoader, configuration, objectFactory, constructorArgTypes, constructorArgs);
 	}
 
 	// 方法，创建支持反序列化的代理对象
@@ -74,35 +74,36 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 	static Object crateProxy(Class<?> type, MethodHandler callback, List<Class<?>> constructorArgTypes,
 			List<Object> constructorArgs) {
 
-		// 创建 javassist ProxyFactory 对象
+		// <3.1> 创建 ProxyFactory 动态代理对象工厂
 		ProxyFactory enhancer = new ProxyFactory();
-		// 设置父类
+		// <3.2> 设置父类，需要代理的类对象
 		enhancer.setSuperclass(type);
 
-		// 根据情况，设置接口为 WriteReplaceInterface 。和序列化相关，可以无视
+		// <3.3> 和序列化相关
 		try {
-			type.getDeclaredMethod(WRITE_REPLACE_METHOD); // 如果已经存在 writeReplace 方法，则不用设置接口为 WriteReplaceInterface
+		  // 获取需要代理的类对象中的 writeReplace 方法
+			type.getDeclaredMethod(WRITE_REPLACE_METHOD);
 			// ObjectOutputStream will call writeReplace of objects returned by writeReplace
 			if (LogHolder.log.isDebugEnabled()) {
-				LogHolder.log.debug(
-						WRITE_REPLACE_METHOD + " method was found on bean " + type + ", make sure it returns this");
+				LogHolder.log.debug(WRITE_REPLACE_METHOD + " method was found on bean " + type + ", make sure it returns this");
 			}
 		} catch (NoSuchMethodException e) {
+		  // 如果没有 writeReplace 方法，则设置接口为 WriteReplaceInterface
 			enhancer.setInterfaces(new Class[] { WriteReplaceInterface.class });
 		} catch (SecurityException e) {
 			// nothing to do here
 		}
 
-		// 创建代理对象
 		Object enhanced;
 		Class<?>[] typesArray = constructorArgTypes.toArray(new Class[constructorArgTypes.size()]);
 		Object[] valuesArray = constructorArgs.toArray(new Object[constructorArgs.size()]);
 		try {
+      // <3.4> 创建动态代理实例对象
 			enhanced = enhancer.create(typesArray, valuesArray);
 		} catch (Exception e) {
 			throw new ExecutorException("Error creating lazy proxy.  Cause: " + e, e);
 		}
-		// <x> 设置代理对象的执行器
+		// <3.5> 设置动态代理实例对象的 MethodHandler 方法增强器
 		((Proxy) enhanced).setHandler(callback);
 		return enhanced;
 	}
@@ -114,6 +115,9 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 
 		private final Class<?> type;
 		private final ResultLoaderMap lazyLoader;
+    /**
+     * 开启时，任一方法的调用都会加载该对象的所有延迟加载属性，默认false
+     */
 		private final boolean aggressive;
 		private final Set<String> lazyLoadTriggerMethods;
 		private final ObjectFactory objectFactory;
@@ -134,9 +138,11 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 		public static Object createProxy(Object target, ResultLoaderMap lazyLoader, Configuration configuration,
 				ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
 			final Class<?> type = target.getClass();
-			EnhancedResultObjectProxyImpl callback = new EnhancedResultObjectProxyImpl(type, lazyLoader, configuration,
-					objectFactory, constructorArgTypes, constructorArgs);
+			// <2> 创建方法的增强器
+			EnhancedResultObjectProxyImpl callback = new EnhancedResultObjectProxyImpl(type, lazyLoader, configuration, objectFactory, constructorArgTypes, constructorArgs);
+			// <3> 创建动态代理实例对象，设置方法的增强器
 			Object enhanced = crateProxy(type, callback, constructorArgTypes, constructorArgs);
+			// <4> 将 target 的属性值复制到 enhanced 动态代实例对象中
 			PropertyCopier.copyBeanProperties(type, target, enhanced);
 			return enhanced;
 		}
@@ -146,7 +152,7 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 			final String methodName = method.getName();
 			try {
 				synchronized (lazyLoader) {
-					// 忽略 WRITE_REPLACE_METHOD ，和序列化相关
+					// <1> 如果方法名为 writeReplace，和序列化相关
 					if (WRITE_REPLACE_METHOD.equals(methodName)) {
 						Object original;
 						if (constructorArgTypes.isEmpty()) {
@@ -154,31 +160,35 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 						} else {
 							original = objectFactory.create(type, constructorArgTypes, constructorArgs);
 						}
+						// 从动态代理实例对象中复制属性值到 original 中
 						PropertyCopier.copyBeanProperties(type, enhanced, original);
 						if (lazyLoader.size() > 0) {
-							return new JavassistSerialStateHolder(original, lazyLoader.getProperties(), objectFactory,
-									constructorArgTypes, constructorArgs);
+							return new JavassistSerialStateHolder(original, lazyLoader.getProperties(), objectFactory,constructorArgTypes, constructorArgs);
 						} else {
 							return original;
 						}
-					} else {
+					} else { // <2> 加载延迟加载的属性
 						if (lazyLoader.size() > 0 && !FINALIZE_METHOD.equals(methodName)) {
-							// <1.1> 加载所有延迟加载的属性
+							// <2.1> 如果开启了任一方法的调用都会加载该对象的所有延迟加载属性，或者是 "equals", "clone", "hashCode", "toString" 其中的某个方法
 							if (aggressive || lazyLoadTriggerMethods.contains(methodName)) {
+							  // 加载所有延迟加载的属性
 								lazyLoader.loadAll();
-							} else if (PropertyNamer.isSetter(methodName)) { // <1.2> 如果调用了 set 方法，则不在使用延迟加载
+							} else if (PropertyNamer.isSetter(methodName)) {
+							  // <2.2> 如果为 setter 方法，从需要延迟加载属性列表中移除
 								final String property = PropertyNamer.methodToProperty(methodName);
 								lazyLoader.remove(property);
-							} else if (PropertyNamer.isGetter(methodName)) { // <1.3> 如果调用了 get 方法，则执行延迟加载
+							} else if (PropertyNamer.isGetter(methodName)) {
+							  // <2.3> 如果调用了 getter 方法，则执行延迟加载，里面也会从 lazyLoader 中将该属性的延迟加载删除
 								final String property = PropertyNamer.methodToProperty(methodName);
 								if (lazyLoader.hasLoader(property)) {
+								  // 加载该属性值
 									lazyLoader.load(property);
 								}
 							}
 						}
 					}
 				}
-				// <2> 继续执行原方法
+				// <3> 继续执行原方法
 				return methodProxy.invoke(enhanced, args);
 			} catch (Throwable t) {
 				throw ExceptionUtil.unwrapThrowable(t);

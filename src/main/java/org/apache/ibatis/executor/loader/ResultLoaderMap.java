@@ -47,9 +47,15 @@ import org.apache.ibatis.session.RowBounds;
  */
 public class ResultLoaderMap {
 
+  /**
+   * 用于延迟加载的加载器
+   * key：属性名称
+   * value：ResultLoader 加载器的封装对象 LoadPair
+   */
 	private final Map<String, LoadPair> loaderMap = new HashMap<>();
 
 	public void addLoader(String property, MetaObject metaResultObject, ResultLoader resultLoader) {
+	  // 获取第一个属性名称
 		String upperFirst = getUppercaseFirstProperty(property);
 		if (!upperFirst.equalsIgnoreCase(property) && loaderMap.containsKey(upperFirst)) {
 			throw new ExecutorException("Nested lazy loaded result property '" + property + "' for query id '"
@@ -150,7 +156,7 @@ public class ResultLoaderMap {
 			this.resultLoader = resultLoader;
 
 			/* Save required information only if original object can be serialized. */
-			// 当 `metaResultObject.originalObject` 可序列化时，则记录 mappedStatement、mappedParameter、configurationFactory 属性
+			// 当 metaResultObject.originalObject 可序列化时，则记录 mappedStatement、mappedParameter、configurationFactory 属性
 			if (metaResultObject != null && metaResultObject.getOriginalObject() instanceof Serializable) {
 				final Object mappedStatementParameter = resultLoader.parameterObject;
 
