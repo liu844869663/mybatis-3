@@ -109,7 +109,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 	}
 
 	private MapperMethod cachedMapperMethod(Method method) {
-		// 从methodCache缓存中获取MapperMethod方法，如果为空则创建一下新的并添加至缓存中
+		// 从 methodCache 缓存中获取 MapperMethod 方法，如果为空则创建一下新的并添加至缓存中
 		return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
 	}
 

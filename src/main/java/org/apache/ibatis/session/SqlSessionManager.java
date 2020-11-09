@@ -44,7 +44,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
 
 	private SqlSessionManager(SqlSessionFactory sqlSessionFactory) {
 		this.sqlSessionFactory = sqlSessionFactory;
-		// <2> 创建 SqlSession 的代理对象
+		// 创建 SqlSession 的代理对象
 		this.sqlSessionProxy = (SqlSession) Proxy.newProxyInstance(SqlSessionFactory.class.getClassLoader(),
 				new Class[] { SqlSession.class }, new SqlSessionInterceptor());
 	}
