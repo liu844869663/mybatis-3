@@ -53,32 +53,31 @@ public class Plugin implements InvocationHandler {
 	}
 
 	public static Object wrap(Object target, Interceptor interceptor) {
-		// <1> 获得拦截的方法映射
+		// <1> 获得拦截器中需要拦截的类的方法集合
 		Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
-		// <2> 获得目标类的类型
+		// <2> 获得目标对象的 Class 对象（父类或者接口）
 		Class<?> type = target.getClass();
-		// <2> 获得目标类的接口集合
+		// <2> 获得目标对象所有需要被拦截的 Class 对象
 		Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
-		// <3.1> 若有接口，则创建目标对象的 JDK Proxy 对象
+		// <3> 若有接口，则为目标对象的创建一个动态代理对象（JDK 动态代理），代理类为 Plugin 对象
 		if (interfaces.length > 0) {
 			// 因为 Plugin 实现了 InvocationHandler 接口，所以可以作为 JDK 动态代理的调用处理器
-			return Proxy.newProxyInstance(type.getClassLoader(), interfaces,
-					new Plugin(target, interceptor, signatureMap));
+			return Proxy.newProxyInstance(type.getClassLoader(), interfaces, new Plugin(target, interceptor, signatureMap));
 		}
-		// <3.2> 如果没有，则返回原始的目标对象
+		// <4> 如果没有，则返回原始的目标对象
 		return target;
 	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		try {
-			// 获得目标方法是否被拦截
+			// 获得目标方法所在的类需要被拦截的方法
 			Set<Method> methods = signatureMap.get(method.getDeclaringClass());
-			if (methods != null && methods.contains(method)) {
-				// 如果是，则拦截处理该方法
+			if (methods != null && methods.contains(method)) { // 如果被拦截的方法包含当前方法
+				// 使用插件拦截该方法进行处理
 				return interceptor.intercept(new Invocation(target, method, args));
 			}
-			// 如果不是，则调用原方法
+			// 如果没有需要被拦截的方法，则调用原方法
 			return method.invoke(target, args);
 		} catch (Exception e) {
 			throw ExceptionUtil.unwrapThrowable(e);
@@ -86,18 +85,20 @@ public class Plugin implements InvocationHandler {
 	}
 
 	private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
-		// 获取Intercepts注解
+		// 获取 @Intercepts 注解
 		Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
 		// issue #251
 		if (interceptsAnnotation == null) {
 			throw new PluginException( "No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());
 		}
-		// 获取Intercepts注解中的Signature注解
+		// 获取 @Intercepts 注解中的 @Signature 注解
 		Signature[] sigs = interceptsAnnotation.value();
 		Map<Class<?>, Set<Method>> signatureMap = new HashMap<>();
 		for (Signature sig : sigs) {
+		  // 为 @Signature 注解中定义类名创建一个方法数组
 			Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
 			try {
+			  // 获取 @Signature 注解中定义的方法对象
 				Method method = sig.type().getMethod(sig.method(), sig.args());
 				methods.add(method);
 			} catch (NoSuchMethodException e) {
